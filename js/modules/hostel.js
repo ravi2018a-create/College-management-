@@ -14,13 +14,70 @@ function getAdminUser() {
     }
 }
 
+// Original hostel form HTML (to restore after allocation/details modals)
+const HOSTEL_FORM_HTML = `
+    <form id="hostelForm" class="modal-form">
+        <input type="hidden" id="hostelId">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Hostel Name <span style="color:red;">*</span></label>
+                <input type="text" id="hostelName" required placeholder="Enter hostel name">
+            </div>
+            <div class="form-group">
+                <label>Type <span style="color:red;">*</span></label>
+                <select id="hostelType" required>
+                    <option value="">Select Type</option>
+                    <option value="Boys">Boys</option>
+                    <option value="Girls">Girls</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Total Rooms <span style="color:red;">*</span></label>
+                <input type="number" id="hostelTotalRooms" required min="1" placeholder="e.g., 100">
+            </div>
+            <div class="form-group">
+                <label>Fee per Month (₹)</label>
+                <input type="number" id="hostelFee" min="0" placeholder="e.g., 15000">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Warden Name</label>
+                <input type="text" id="hostelWardenName" placeholder="e.g., Mr. Rajesh Kumar">
+            </div>
+            <div class="form-group">
+                <label>Warden Contact</label>
+                <input type="tel" id="hostelWardenContact" placeholder="e.g., 9876543210">
+            </div>
+        </div>
+        <div class="form-row full">
+            <div class="form-group">
+                <label>Facilities</label>
+                <textarea id="hostelFacilities" rows="3" placeholder="e.g., AC Rooms, WiFi, Mess, Gym, Laundry"></textarea>
+            </div>
+        </div>
+    </form>
+`;
+
+// Restore hostel modal to its original form state
+function restoreHostelModal() {
+    const modalBody = document.getElementById('hostelModal').querySelector('.modal-body');
+    modalBody.innerHTML = HOSTEL_FORM_HTML;
+    // Restore footer buttons
+    const modalFooter = document.getElementById('hostelModal').querySelector('.modal-footer');
+    modalFooter.innerHTML = `
+        <button class="btn" onclick="closeModal('hostelModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveHostel()">Save Hostel</button>
+    `;
+}
+
 // Helper: check if current user can manage hostels
 function canManageHostel() {
     const user = getAdminUser();
     return user.role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(user.role);
 }
-
-// Load hostel data
 async function loadHostelData() {
     try {
         const [hostelsRes, allocationsRes] = await Promise.all([
@@ -134,6 +191,9 @@ function displayAllocationData(allocations) {
 
 // Open hostel modal
 function openHostelModal(hostelId = null) {
+    // Always restore the form first (in case allocation/details modal replaced it)
+    restoreHostelModal();
+    
     // Clear form
     document.getElementById('hostelForm').reset();
     document.getElementById('hostelId').value = hostelId || '';
@@ -144,7 +204,7 @@ function openHostelModal(hostelId = null) {
     
     // If editing, populate form with existing data
     if (hostelId) {
-        const hostel = currentHostels.find(h => h.id === parseInt(hostelId));
+        const hostel = currentHostels.find(h => String(h.id) === String(hostelId));
         if (hostel) {
             document.getElementById('hostelName').value = hostel.name || '';
             document.getElementById('hostelType').value = hostel.type || '';
@@ -208,8 +268,8 @@ function openAllocationModal() {
     
     // Use the existing hostel modal but change its content
     document.getElementById('hostelModalTitle').textContent = 'Allocate Room';
-    document.getElementById('hostelForm').style.display = 'none';
-    document.getElementById('hostelModal').querySelector('.modal-body').innerHTML = `
+    const modalBody = document.getElementById('hostelModal').querySelector('.modal-body');
+    modalBody.innerHTML = `
         <form id="allocationForm" class="modal-form">
             <div class="form-group">
                 <label for="allocStudentId">Student ID <span style="color:red;">*</span></label>
@@ -237,12 +297,15 @@ function openAllocationModal() {
                 <input type="date" id="allocDate" required>
             </div>
         </form>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeAllocationModal()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="submitAllocation()">
-                <i class="fas fa-bed"></i> Allocate Room
-            </button>
-        </div>
+    `;
+    
+    // Update footer buttons
+    const modalFooter = document.getElementById('hostelModal').querySelector('.modal-footer');
+    modalFooter.innerHTML = `
+        <button type="button" class="btn" onclick="closeAllocationModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitAllocation()">
+            <i class="fas fa-bed"></i> Allocate Room
+        </button>
     `;
     
     // Set today's date as default
@@ -253,53 +316,7 @@ function openAllocationModal() {
 // Close allocation modal and restore hostel form
 function closeAllocationModal() {
     document.getElementById('hostelModal').classList.remove('active');
-    // Restore the hostel form
-    document.getElementById('hostelForm').style.display = 'block';
-    document.getElementById('hostelModal').querySelector('.modal-body').innerHTML = `
-        <form id="hostelForm" class="modal-form">
-            <input type="hidden" id="hostelId">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Hostel Name <span style="color:red;">*</span></label>
-                    <input type="text" id="hostelName" required placeholder="Enter hostel name">
-                </div>
-                <div class="form-group">
-                    <label>Type <span style="color:red;">*</span></label>
-                    <select id="hostelType" required>
-                        <option value="">Select Type</option>
-                        <option value="Boys">Boys</option>
-                        <option value="Girls">Girls</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Total Rooms <span style="color:red;">*</span></label>
-                    <input type="number" id="hostelTotalRooms" required min="1" placeholder="e.g., 100">
-                </div>
-                <div class="form-group">
-                    <label>Fee per Month (₹)</label>
-                    <input type="number" id="hostelFee" min="0" placeholder="e.g., 15000">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Warden Name</label>
-                    <input type="text" id="hostelWardenName" placeholder="e.g., Mr. Rajesh Kumar">
-                </div>
-                <div class="form-group">
-                    <label>Warden Contact</label>
-                    <input type="tel" id="hostelWardenContact" placeholder="e.g., 9876543210">
-                </div>
-            </div>
-            <div class="form-row full">
-                <div class="form-group">
-                    <label>Facilities</label>
-                    <textarea id="hostelFacilities" rows="3" placeholder="e.g., AC Rooms, WiFi, Mess, Gym, Laundry"></textarea>
-                </div>
-            </div>
-        </form>
-    `;
+    restoreHostelModal();
 }
 
 // Submit allocation
@@ -370,7 +387,7 @@ async function handleAllocationSubmit(e) {
 
 // View hostel details
 function viewHostel(id) {
-    const hostel = currentHostels.find(h => h.id === parseInt(id));
+    const hostel = currentHostels.find(h => String(h.id) === String(id));
     if (!hostel) {
         showToast('Hostel not found', 'error');
         return;
@@ -428,11 +445,11 @@ function viewHostel(id) {
     
     // Use the existing hostel modal
     document.getElementById('hostelModalTitle').textContent = 'Hostel Details';
-    document.getElementById('hostelForm').style.display = 'none';
-    document.getElementById('hostelModal').querySelector('.modal-body').innerHTML = content + `
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeHostelDetailsModal()">Close</button>
-        </div>
+    const modalBody = document.getElementById('hostelModal').querySelector('.modal-body');
+    modalBody.innerHTML = content;
+    const modalFooter = document.getElementById('hostelModal').querySelector('.modal-footer');
+    modalFooter.innerHTML = `
+        <button type="button" class="btn btn-secondary" onclick="closeHostelDetailsModal()">Close</button>
     `;
     document.getElementById('hostelModal').classList.add('active');
 }
@@ -440,58 +457,12 @@ function viewHostel(id) {
 // Close hostel details modal and restore form
 function closeHostelDetailsModal() {
     document.getElementById('hostelModal').classList.remove('active');
-    // Restore the form
-    document.getElementById('hostelForm').style.display = 'block';
-    document.getElementById('hostelModal').querySelector('.modal-body').innerHTML = `
-        <form id="hostelForm" class="modal-form">
-            <input type="hidden" id="hostelId">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Hostel Name <span style="color:red;">*</span></label>
-                    <input type="text" id="hostelName" required placeholder="Enter hostel name">
-                </div>
-                <div class="form-group">
-                    <label>Type <span style="color:red;">*</span></label>
-                    <select id="hostelType" required>
-                        <option value="">Select Type</option>
-                        <option value="Boys">Boys</option>
-                        <option value="Girls">Girls</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Total Rooms <span style="color:red;">*</span></label>
-                    <input type="number" id="hostelTotalRooms" required min="1" placeholder="e.g., 100">
-                </div>
-                <div class="form-group">
-                    <label>Fee per Month (₹)</label>
-                    <input type="number" id="hostelFee" min="0" placeholder="e.g., 15000">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Warden Name</label>
-                    <input type="text" id="hostelWardenName" placeholder="e.g., Mr. Rajesh Kumar">
-                </div>
-                <div class="form-group">
-                    <label>Warden Contact</label>
-                    <input type="tel" id="hostelWardenContact" placeholder="e.g., 9876543210">
-                </div>
-            </div>
-            <div class="form-row full">
-                <div class="form-group">
-                    <label>Facilities</label>
-                    <textarea id="hostelFacilities" rows="3" placeholder="e.g., AC Rooms, WiFi, Mess, Gym, Laundry"></textarea>
-                </div>
-            </div>
-        </form>
-    `;
+    restoreHostelModal();
 }
 
 // Edit hostel
 function editHostel(id) {
-    const hostel = currentHostels.find(h => h.id === parseInt(id));
+    const hostel = currentHostels.find(h => String(h.id) === String(id));
     if (!hostel) {
         showToast('Hostel not found', 'error');
         return;
@@ -783,25 +754,71 @@ function displayHostelRequests(requests) {
 
 // Approve hostel request
 async function approveHostelRequest(requestId) {
-    if (!confirm('Approve this hostel request? The student will be notified.')) return;
+    // Find the request details
+    const request = currentHostelRequests.find(r => String(r.id) === String(requestId));
+    if (!request) {
+        showToast('Request not found', 'error');
+        return;
+    }
+    
+    // Prompt for room number
+    const roomNo = prompt(`Assign room number for ${request.student_name} at ${request.hostel_name}:`, 'A-101');
+    if (roomNo === null) return; // User clicked cancel
+    if (!roomNo.trim()) {
+        showToast('Please enter a room number', 'error');
+        return;
+    }
     
     const currentUser = getAdminUser();
     
     try {
-        const { error } = await window.CMS_CONFIG.supabase
+        // 1. Update request status to approved
+        const { error: updateError } = await window.CMS_CONFIG.supabase
             .from('hostel_requests')
             .update({
                 status: 'approved',
+                remarks: 'Room ' + roomNo.trim() + ' allocated',
                 reviewed_by: currentUser.name || currentUser.email || 'Admin',
                 reviewed_date: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             })
             .eq('id', requestId);
         
-        if (error) throw error;
+        if (updateError) throw updateError;
         
-        showToast('Hostel request approved successfully!', 'success');
-        loadHostelRequests();
+        // 2. Create hostel allocation record
+        const hostel = currentHostels.find(h => h.name === request.hostel_name);
+        const allocationData = {
+            student_id: request.student_id,
+            student_name: request.student_name,
+            hostel_name: request.hostel_name,
+            room_no: roomNo.trim(),
+            allocation_date: new Date().toISOString().split('T')[0]
+        };
+        if (hostel) {
+            allocationData.hostel_id = hostel.id;
+        }
+        
+        const { error: allocError } = await window.CMS_CONFIG.supabase
+            .from('hostel_allocations')
+            .insert([allocationData]);
+        
+        if (allocError) {
+            console.warn('Allocation insert warning:', allocError.message);
+            // Don't fail the whole operation - request is already approved
+        }
+        
+        // 3. Update hostel occupied count
+        if (hostel) {
+            const newOccupied = (hostel.occupied || 0) + 1;
+            await window.CMS_CONFIG.supabase
+                .from('hostels')
+                .update({ occupied: newOccupied })
+                .eq('id', hostel.id);
+        }
+        
+        showToast(`Approved! Room ${roomNo.trim()} at ${request.hostel_name} allocated to ${request.student_name}`, 'success');
+        loadHostelData(); // Reload everything
     } catch (err) {
         console.error('Error approving request:', err);
         showToast('Error approving request: ' + err.message, 'error');

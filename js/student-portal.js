@@ -1482,6 +1482,7 @@ async function loadHostelOptions() {
         let hasAllocation = false;
         
         if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            // First check hostel_allocations table
             const { data: allocationData } = await window.CMS_CONFIG.supabase
                 .from('hostel_allocations')
                 .select('*')
@@ -1491,6 +1492,23 @@ async function loadHostelOptions() {
             if (allocationData) {
                 hasAllocation = true;
                 renderHostelAllocation(allocationData);
+            } else {
+                // Also check for approved hostel request
+                const { data: approvedReq } = await window.CMS_CONFIG.supabase
+                    .from('hostel_requests')
+                    .select('*')
+                    .eq('student_id', currentStudent.student_id)
+                    .eq('status', 'approved')
+                    .maybeSingle();
+                
+                if (approvedReq) {
+                    hasAllocation = true;
+                    renderHostelAllocation({
+                        hostel_name: approvedReq.hostel_name,
+                        room_no: (approvedReq.remarks || '').replace('Room ', '').replace(' allocated', '') || 'Assigned',
+                        allocation_date: approvedReq.reviewed_date || approvedReq.request_date
+                    });
+                }
             }
         }
         
@@ -1512,6 +1530,8 @@ function renderHostelAllocation(allocation) {
     const container = document.getElementById('hostelAllocationInfo');
     if (!container) return;
     
+    const allocDate = allocation.allocation_date ? formatDate(allocation.allocation_date) : 'N/A';
+    
     container.innerHTML = `
         <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 25px; border-radius: 12px; text-align: center;">
             <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 15px;"></i>
@@ -1523,15 +1543,11 @@ function renderHostelAllocation(allocation) {
                 </div>
                 <div>
                     <p style="font-size: 12px; opacity: 0.8;">Room Number</p>
-                    <p style="font-size: 16px; font-weight: 600;">${allocation.room_no || allocation.room_number || 'N/A'}</p>
+                    <p style="font-size: 16px; font-weight: 600;">${allocation.room_no || allocation.room_number || 'Assigned'}</p>
                 </div>
                 <div>
-                    <p style="font-size: 12px; opacity: 0.8;">Floor</p>
-                    <p style="font-size: 16px; font-weight: 600;">${allocation.floor || 'N/A'}</p>
-                </div>
-                <div>
-                    <p style="font-size: 12px; opacity: 0.8;">Monthly Fee</p>
-                    <p style="font-size: 16px; font-weight: 600;">${formatCurrency(allocation.monthly_fee || 8000)}</p>
+                    <p style="font-size: 12px; opacity: 0.8;">Allocated On</p>
+                    <p style="font-size: 16px; font-weight: 600;">${allocDate}</p>
                 </div>
             </div>
         </div>
@@ -1617,12 +1633,31 @@ async function requestHostel(hostelName, hostelType) {
         return;
     }
     
-    if (!confirm(`Do you want to request accommodation at ${hostelName}?`)) {
-        return;
-    }
-    
     try {
-        // In production, save to database
+        // Check if student already has a pending or approved request
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data: existingRequests, error: checkError } = await window.CMS_CONFIG.supabase
+                .from('hostel_requests')
+                .select('id, hostel_name, status')
+                .eq('student_id', currentStudent.student_id)
+                .in('status', ['pending', 'approved']);
+            
+            if (!checkError && existingRequests && existingRequests.length > 0) {
+                const existing = existingRequests[0];
+                if (existing.status === 'approved') {
+                    showToast(`You already have an approved hostel request for "${existing.hostel_name}". You cannot request another hostel.`, 'error');
+                } else {
+                    showToast(`You already have a pending request for "${existing.hostel_name}". Please wait for it to be reviewed or cancel it first.`, 'error');
+                }
+                return;
+            }
+        }
+        
+        if (!confirm(`Do you want to request accommodation at ${hostelName}?`)) {
+            return;
+        }
+        
+        // Save to database
         if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
             const requestData = {
                 student_id: currentStudent.student_id,
@@ -1649,7 +1684,7 @@ async function requestHostel(hostelName, hostelType) {
             }
         }
         
-        showToast(`✅ Hostel request for ${hostelName} submitted successfully!`, 'success');
+        showToast(`Hostel request for ${hostelName} submitted successfully!`, 'success');
         await loadHostelRequests();
     } catch (error) {
         console.error('Error requesting hostel:', error);
@@ -1683,14 +1718,17 @@ async function loadHostelRequests() {
             return;
         }
         
-        tbody.innerHTML = requests.map(req => `
+        tbody.innerHTML = requests.map(req => {
+            const statusClass = req.status === 'approved' ? 'active' : req.status === 'rejected' ? 'inactive' : 'pending';
+            const roomInfo = req.status === 'approved' ? (req.remarks || 'Allocated') : '-';
+            return `
             <tr>
                 <td>${formatDate(req.request_date)}</td>
                 <td>${req.hostel_name}</td>
-                <td>${req.room_type}</td>
-                <td><span class="status-badge status-${req.status}">${req.status}</span></td>
-            </tr>
-        `).join('');
+                <td>${roomInfo}</td>
+                <td><span class="status-badge ${statusClass}" style="text-transform:capitalize;">${req.status}</span></td>
+            </tr>`;
+        }).join('');
     } catch (error) {
         console.error('Error loading hostel requests:', error);
         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Error loading requests</td></tr>';
