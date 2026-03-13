@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - College Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/student-portal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Student Login Section -->
+    <div id="studentLoginSection" class="login-container student-login">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fas fa-user-graduate"></i>
+                <h1>Student Portal</h1>
+                <p>Login with your email</p>
+            </div>
+            <form id="studentLoginForm">
+                <div class="form-group">
+                    <label for="studentEmail">Email</label>
+                    <input type="email" id="studentEmail" required placeholder="Your registered email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+            <div class="login-footer">
+                <p>Demo: john.smith@college.edu / student123</p>
+                <p style="font-size:11px;">sarah.johnson@college.edu / student123</p>
+                <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Admin Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Dashboard -->
+    <div id="studentDashboard" class="dashboard-container" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar student-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-user-graduate"></i>
+                <h2>Student</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-module="profile">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="#" class="nav-item" data-module="fees">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Fee Status</span>
+                </a>
+                <a href="#" class="nav-item" data-module="library">
+                    <i class="fas fa-book"></i>
+                    <span>Library</span>
+                </a>
+                <a href="#" class="nav-item" data-module="hostel">
+                    <i class="fas fa-home"></i>
+                    <span>Hostel</span>
+                </a>
+                <a href="#" class="nav-item" data-module="scholarship">
+                    <i class="fas fa-award"></i>
+                    <span>Scholarships</span>
+                </a>
+                <a href="#" class="nav-item" data-module="notices">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Notices</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="studentLogoutBtn" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button id="menuToggle" class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">My Profile</h1>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <span id="studentName">Student</span>
+                        <span id="studentIdBadge" class="badge">STU001</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area" id="contentArea">
+                
+                <!-- Profile Module -->
+                <div id="profileModule" class="module active">
+                    <div class="profile-header-card">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h2 id="profileName">Student Name</h2>
+                            <p id="profileId">Student ID</p>
+                            <p id="profileDept">Department</p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-details card">
+                        <div class="card-header">
+                            <h3>Personal Information</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Full Name</label>
+                                    <span id="infoName">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Student ID</label>
+                                    <span id="infoStudentId">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Email</label>
+                                    <span id="infoEmail">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Phone</label>
+                                    <span id="infoPhone">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Department</label>
+                                    <span id="infoDepartment">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Academic Year</label>
+                                    <span id="infoYear">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Hostel Status</label>
+                                    <span id="infoHostel">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Fee Status</label>
+                                    <span id="infoFeeStatus">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quick-stats">
+                        <div class="quick-stat-card">
+                            <i class="fas fa-book"></i>
+                            <div>
+                                <h4 id="booksIssued">0</h4>
+                                <p>Books Issued</p>
+                            </div>
+                        </div>
+                        <div class="quick-stat-card">
+                            <i class="fas fa-rupee-sign"></i>
+                            <div>
+                                <h4 id="feesDue">₹0</h4>
+                                <p>Fees Due</p>
+                            </div>
+                        </div>
+                        <div class="quick-stat-card">
+                            <i class="fas fa-award"></i>
+                            <div>
+                                <h4 id="scholarshipStatus">None</h4>
+                                <p>Scholarship</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fee Status Module -->
+                <div id="feesModule" class="module">
+                    <div class="fee-overview">
+                        <div class="fee-card total">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <div>
+                                <p>Total Fees</p>
+                                <h3 id="totalFeesAmount">₹0</h3>
+                            </div>
+                        </div>
+                        <div class="fee-card paid">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <p>Paid Amount</p>
+                                <h3 id="paidFeesAmount">₹0</h3>
+                            </div>
+                        </div>
+                        <div class="fee-card due">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>
+                                <p>Due Amount</p>
+                                <h3 id="dueFeesAmount">₹0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Fee Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="feeStatusMessage" class="fee-status-message"></div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="feeDetailsTable">
+                                    <tr>
+                                        <td colspan="3" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card mt-20">
+                        <div class="card-header">
+                            <h3>Payment History</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Mode</th>
+                                        <th>Reference</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentHistoryTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">No payment history</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Library Module -->
+                <div id="libraryModule" class="module">
+                    <div class="library-stats">
+                        <div class="lib-stat-card">
+                            <i class="fas fa-book-open"></i>
+                            <div>
+                                <h4 id="currentlyIssued">0</h4>
+                                <p>Currently Issued</p>
+                            </div>
+                        </div>
+                        <div class="lib-stat-card overdue">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <h4 id="overdueBooks">0</h4>
+                                <p>Overdue</p>
+                            </div>
+                        </div>
+                        <div class="lib-stat-card">
+                            <i class="fas fa-history"></i>
+                            <div>
+                                <h4 id="totalBorrowed">0</h4>
+                                <p>Total Borrowed</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Currently Issued Books</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Book Title</th>
+                                        <th>Issue Date</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="issuedBooksTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">No books currently issued</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card mt-20">
+                        <div class="card-header">
+                            <h3>Borrowing History</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Book Title</th>
+                                        <th>Issue Date</th>
+                                        <th>Return Date</th>
+                                        <th>Fine</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="borrowHistoryTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">No borrowing history</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hostel Module -->
+                <div id="hostelModule" class="module">
+                    <div id="hostelAllocationInfo">
+                        <!-- Hostel info will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Scholarship Module -->
+                <div id="scholarshipModule" class="module">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>My Scholarships</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="scholarshipList">
+                                <!-- Scholarships will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-20">
+                        <div class="card-header">
+                            <h3>My Benefits</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="benefitsList">
+                                <!-- Benefits will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notices Module -->
+                <div id="noticesModule" class="module">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>College Notices & Announcements</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="noticesList">
+                                <!-- Notices will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/student-portal.js"></script>
+</body>
+</html>

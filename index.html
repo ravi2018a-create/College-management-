@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+            --dark: #2d3436;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); min-height: 100vh; }
+
+        /* Login */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 20px;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-header { text-align: center; margin-bottom: 30px; }
+        .login-header i { font-size: 48px; color: var(--primary); margin-bottom: 15px; }
+        .login-header h1 { color: var(--dark); font-size: 24px; margin-bottom: 8px; }
+        .login-header p { color: var(--gray); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--dark); font-weight: 500; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; width: 100%; justify-content: center; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+        .login-footer { margin-top: 25px; text-align: center; font-size: 12px; color: var(--gray); }
+        .login-footer a { color: var(--primary); text-decoration: none; }
+
+        /* Dashboard */
+        .dashboard-container { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header { padding: 25px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header i { font-size: 36px; margin-bottom: 10px; }
+        .sidebar-header h2 { font-size: 18px; font-weight: 600; }
+        .sidebar-nav { padding: 15px 0; }
+        .nav-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item.active { background: rgba(255,255,255,0.15); border-left-color: white; }
+        .nav-item i { width: 20px; text-align: center; }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 30px; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .header h1 { font-size: 28px; color: var(--dark); }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { color: var(--gray); }
+        #logoutBtn { background: var(--danger); color: white; }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .card-header h3 { color: var(--dark); font-size: 18px; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .stat-card .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        .stat-card .icon.blue { background: linear-gradient(135deg, #4361ee, #3a56d4); }
+        .stat-card .icon.green { background: linear-gradient(135deg, #00b894, #00a085); }
+        .stat-card .icon.orange { background: linear-gradient(135deg, #fdcb6e, #f39c12); }
+        .stat-card .icon.red { background: linear-gradient(135deg, #e17055, #d63031); }
+        .stat-card .icon.purple { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+        .stat-card .info h4 { font-size: 28px; color: var(--dark); margin-bottom: 5px; }
+        .stat-card .info p { color: var(--gray); font-size: 14px; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--light); font-weight: 600; color: var(--dark); }
+        tr:hover { background: #f8f9fa; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status-active, .status-paid, .status-approved, .status-returned { background: #d4edda; color: #155724; }
+        .status-pending, .status-partial { background: #fff3cd; color: #856404; }
+        .status-inactive, .status-rejected, .status-overdue { background: #f8d7da; color: #721c24; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { color: var(--dark); }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray); }
+        .modal-body { padding: 25px; }
+        .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .toast.success { background: #d4edda; color: #155724; }
+        .toast.error { background: #f8d7da; color: #721c24; }
+        .toast.show { display: flex; animation: slideIn 0.3s ease; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Org Chart */
+        .org-chart { display: flex; flex-direction: column; align-items: center; padding: 30px; }
+        .org-level { display: flex; justify-content: center; gap: 40px; margin-bottom: 30px; }
+        .org-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 35px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-width: 200px;
+        }
+        .org-card.chairman { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .org-card.principal { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+        .org-card i { font-size: 36px; margin-bottom: 15px; }
+        .org-card h4 { font-size: 14px; opacity: 0.9; margin-bottom: 5px; }
+        .org-card h3 { font-size: 18px; }
+
+        /* Search & Filters */
+        .toolbar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-box { flex: 1; min-width: 200px; position: relative; }
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); }
+        .filter-select { padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; min-width: 150px; }
+
+        /* Module Content */
+        .module-content { display: none; }
+        .module-content.active { display: block; }
+
+        /* Actions */
+        .actions { display: flex; gap: 8px; }
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar-header h2, .nav-item span { display: none; }
+            .main-content { margin-left: 70px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Section -->
+    <div id="loginSection" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fas fa-university"></i>
+                <h1>College Management System</h1>
+                <p>Please login to continue</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="Enter your password">
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" required>
+                        <option value="">Select Role</option>
+                        <option value="chairman">Chairman</option>
+                        <option value="principal">Principal</option>
+                        <option value="registrar">Registrar</option>
+                        <option value="hod">HOD</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="librarian">Librarian</option>
+                        <option value="accountant">Accountant</option>
+                        <option value="hostel_warden">Hostel Warden</option>
+                        <option value="admission_staff">Admission Staff</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+            <div class="login-footer">
+                <p><strong>Demo Credentials:</strong></p>
+                <p style="font-size:11px; margin-top:8px;">chairman@college.com / chairman123</p>
+                <p style="font-size:11px;">principal@college.com / principal123</p>
+                <p style="font-size:11px;">registrar@college.com / registrar123</p>
+                <p style="font-size:11px;">librarian@college.com / librarian123</p>
+                <p style="font-size:11px;">accountant@college.com / accountant123</p>
+                <p style="margin-top: 15px;">
+                    <a href="student-portal.html"><i class="fas fa-user-graduate"></i> Student Portal</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="mainDashboard" class="dashboard-container" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-university"></i>
+                <h2>College CMS</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-module="dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+                <div class="nav-item" data-module="chain"><i class="fas fa-sitemap"></i><span>Chain Management</span></div>
+                <div class="nav-item" data-module="departments"><i class="fas fa-building"></i><span>Departments</span></div>
+                <div class="nav-item" data-module="registrar"><i class="fas fa-user-tie"></i><span>Registrar</span></div>
+                <div class="nav-item" data-module="admission"><i class="fas fa-user-plus"></i><span>Admission Cell</span></div>
+                <div class="nav-item" data-module="students"><i class="fas fa-user-graduate"></i><span>Students</span></div>
+                <div class="nav-item" data-module="teachers"><i class="fas fa-chalkboard-teacher"></i><span>Teachers</span></div>
+                <div class="nav-item" data-module="library"><i class="fas fa-book"></i><span>Library</span></div>
+                <div class="nav-item" data-module="hostel"><i class="fas fa-hotel"></i><span>Hostel</span></div>
+                <div class="nav-item" data-module="accounts"><i class="fas fa-rupee-sign"></i><span>Accounts</span></div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1 id="moduleTitle">Dashboard</h1>
+                <div class="user-info">
+                    <span id="userName">Admin</span>
+                    <button id="logoutBtn" class="btn btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Module -->
+            <div id="dashboardModule" class="module-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="icon blue"><i class="fas fa-user-graduate"></i></div>
+                        <div class="info"><h4>1,250</h4><p>Total Students</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon green"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="info"><h4>85</h4><p>Total Teachers</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon orange"><i class="fas fa-building"></i></div>
+                        <div class="info"><h4>4</h4><p>Departments</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon purple"><i class="fas fa-book"></i></div>
+                        <div class="info"><h4>5,420</h4><p>Library Books</p></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Recent Activities</h3></div>
+                    <p style="color: var(--gray);">Welcome to College Management System!</p>
+                </div>
+            </div>
+
+            <!-- Chain Management Module -->
+            <div id="chainModule" class="module-content">
+                <div class="org-chart">
+                    <div class="org-level">
+                        <div class="org-card chairman">
+                            <i class="fas fa-crown"></i>
+                            <h4>Chairman</h4>
+                            <h3>Dr. Robert Smith</h3>
+                            <p>9876543210</p>
+                        </div>
+                    </div>
+                    <div style="width:2px; height:40px; background:#ddd;"></div>
+                    <div class="org-level">
+                        <div class="org-card principal">
+                            <i class="fas fa-user-tie"></i>
+                            <h4>Principal</h4>
+                            <h3>Dr. Sarah Johnson</h3>
+                            <p>9876543211</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Departments Module -->
+            <div id="departmentsModule" class="module-content">
+                <div class="card">
+                    <div class="card-header"><h3>All Departments</h3></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Code</th><th>Name</th><th>HOD</th><th>Teachers</th><th>Students</th><th>Established</th></tr></thead>
+                            <tbody>
+                                <tr><td>CS</td><td>Computer Science</td><td>Dr. Anil Kumar</td><td>22</td><td>320</td><td>1995</td></tr>
+                                <tr><td>AIML</td><td>AI & Machine Learning</td><td>Dr. Priya Mehta</td><td>18</td><td>280</td><td>2020</td></tr>
+                                <tr><td>ECE</td><td>Electronics & Communication</td><td>Dr. Rajesh Sharma</td><td>25</td><td>350</td><td>1990</td></tr>
+                                <tr><td>EE</td><td>Electrical Engineering</td><td>Dr. Sunita Verma</td><td>20</td><td>300</td><td>1988</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registrar Module -->
+            <div id="registrarModule" class="module-content">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="icon blue"><i class="fas fa-users"></i></div><div class="info"><h4>12</h4><p>DCC Staff</p></div></div>
+                    <div class="stat-card"><div class="icon green"><i class="fas fa-award"></i></div><div class="info"><h4>156</h4><p>Scholarships</p></div></div>
+                    <div class="stat-card"><div class="icon orange"><i class="fas fa-gift"></i></div><div class="info"><h4>89</h4><p>Benefits</p></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Scholarships</h3><button class="btn btn-primary btn-sm" onclick="openModal('scholarshipModal')"><i class="fas fa-plus"></i> Add</button></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Student</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr><td>John Smith</td><td>Merit</td><td>₹25,000</td><td><span class="status-badge status-approved">Approved</span></td></tr>
+                                <tr><td>Sarah Johnson</td><td>Sports</td><td>₹15,000</td><td><span class="status-badge status-pending">Pending</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admission Module -->
+            <div id="admissionModule" class="module-content">
+                <div class="card">
+                    <div class="card-header"><h3>Admissions</h3><button class="btn btn-primary btn-sm" onclick="openModal('admissionModal')"><i class="fas fa-plus"></i> New Admission</button></div>
+                    <div class="toolbar">
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search admissions..."></div>
+                        <select class="filter-select"><option>All Departments</option></select>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Admission No</th><th>Name</th><th>Department</th><th>Year</th><th>Date</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr><td>ADM2025001</td><td>Rahul Kumar</td><td>CS</td><td>1</td><td>15-Jul-2025</td><td><span class="status-badge status-active">Active</span></td></tr>
+                                <tr><td>ADM2025002</td><td>Priya Singh</td><td>AIML</td><td>1</td><td>16-Jul-2025</td><td><span class="status-badge status-active">Active</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Module -->
+            <div id="studentsModule" class="module-content">
+                <div class="card">
+                    <div class="card-header"><h3>Students</h3><button class="btn btn-primary btn-sm" onclick="openModal('studentModal')"><i class="fas fa-plus"></i> Add Student</button></div>
+                    <div class="toolbar">
+                        <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search students..."></div>
+                        <select class="filter-select"><option value="">All Departments</option><option value="CS">Computer Science</option><option value="AIML">AI & ML</option><option value="ECE">Electronics</option><option value="EE">Electrical</option></select>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Year</th><th>Hostel</th><th>Fee Status</th><th>Actions</th></tr></thead>
+                            <tbody id="studentsTable">
+                                <tr><td>STU001</td><td>John Smith</td><td>CS</td><td>2</td><td>Yes</td><td><span class="status-badge status-paid">Paid</span></td><td class="actions"><button class="btn btn-icon btn-primary"><i class="fas fa-eye"></i></button></td></tr>
+                                <tr><td>STU002</td><td>Sarah Johnson</td><td>ECE</td><td>3</td><td>No</td><td><span class="status-badge status-partial">Partial</span></td><td class="actions"><button class="btn btn-icon btn-primary"><i class="fas fa-eye"></i></button></td></tr>
+                                <tr><td>STU003</td><td>Mike Brown</td><td>AIML</td><td>1</td><td>Yes</td><td><span class="status-badge status-pending">Pending</span></td><td class="actions"><button class="btn btn-icon btn-primary"><i class="fas fa-eye"></i></button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teachers Module -->
+            <div id="teachersModule" class="module-content">
+                <div class="card">
+                    <div class="card-header"><h3>Teachers</h3><button class="btn btn-primary btn-sm" onclick="openModal('teacherModal')"><i class="fas fa-plus"></i> Add Teacher</button></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Subjects</th><th>Contact</th></tr></thead>
+                            <tbody>
+                                <tr><td>TCH001</td><td>Dr. Anil Kumar</td><td>CS</td><td>Professor & HOD</td><td>Data Structures, Algorithms</td><td>9876543220</td></tr>
+                                <tr><td>TCH002</td><td>Prof. Emily Wilson</td><td>CS</td><td>Associate Professor</td><td>Database Systems, SQL</td><td>9876543221</td></tr>
+                                <tr><td>TCH003</td><td>Dr. Priya Mehta</td><td>AIML</td><td>Professor & HOD</td><td>Machine Learning, AI</td><td>9876543222</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Library Module -->
+            <div id="libraryModule" class="module-content">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="icon blue"><i class="fas fa-book"></i></div><div class="info"><h4>5,420</h4><p>Total Books</p></div></div>
+                    <div class="stat-card"><div class="icon green"><i class="fas fa-book-open"></i></div><div class="info"><h4>4,850</h4><p>Available</p></div></div>
+                    <div class="stat-card"><div class="icon orange"><i class="fas fa-hand-holding"></i></div><div class="info"><h4>570</h4><p>Issued</p></div></div>
+                    <div class="stat-card"><div class="icon red"><i class="fas fa-exclamation-triangle"></i></div><div class="info"><h4>23</h4><p>Overdue</p></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Book Catalog</h3><button class="btn btn-primary btn-sm" onclick="openModal('bookModal')"><i class="fas fa-plus"></i> Add Book</button></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Book ID</th><th>Title</th><th>Author</th><th>Subject</th><th>Total</th><th>Available</th></tr></thead>
+                            <tbody>
+                                <tr><td>BK001</td><td>Introduction to Algorithms</td><td>Thomas H. Cormen</td><td>Computer Science</td><td>10</td><td>7</td></tr>
+                                <tr><td>BK002</td><td>Database System Concepts</td><td>Abraham Silberschatz</td><td>Computer Science</td><td>8</td><td>5</td></tr>
+                                <tr><td>BK003</td><td>Digital Electronics</td><td>Morris Mano</td><td>Electronics</td><td>12</td><td>9</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hostel Module -->
+            <div id="hostelModule" class="module-content">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="icon blue"><i class="fas fa-building"></i></div><div class="info"><h4>4</h4><p>Total Hostels</p></div></div>
+                    <div class="stat-card"><div class="icon green"><i class="fas fa-bed"></i></div><div class="info"><h4>400</h4><p>Total Rooms</p></div></div>
+                    <div class="stat-card"><div class="icon orange"><i class="fas fa-user-check"></i></div><div class="info"><h4>350</h4><p>Occupied</p></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Hostels</h3></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Name</th><th>Type</th><th>Total Rooms</th><th>Occupied</th><th>Vacant</th><th>Warden</th></tr></thead>
+                            <tbody>
+                                <tr><td>Boys Hostel A</td><td>Boys</td><td>120</td><td>105</td><td>15</td><td>Mr. Rajesh Kumar</td></tr>
+                                <tr><td>Boys Hostel B</td><td>Boys</td><td>100</td><td>92</td><td>8</td><td>Mr. Suresh Patel</td></tr>
+                                <tr><td>Girls Hostel A</td><td>Girls</td><td>100</td><td>88</td><td>12</td><td>Mrs. Sunita Sharma</td></tr>
+                                <tr><td>Girls Hostel B</td><td>Girls</td><td>80</td><td>65</td><td>15</td><td>Mrs. Anita Verma</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounts Module -->
+            <div id="accountsModule" class="module-content">
+                <div id="feePasswordSection">
+                    <div class="card" style="max-width: 400px; margin: 50px auto; text-align: center;">
+                        <h3 style="margin-bottom: 20px;"><i class="fas fa-lock"></i> Password Protected</h3>
+                        <p style="color: var(--gray); margin-bottom: 20px;">Enter password to access fee records</p>
+                        <div class="form-group"><input type="password" id="feePassword" placeholder="Enter password"></div>
+                        <button class="btn btn-primary" onclick="checkFeePassword()"><i class="fas fa-unlock"></i> Unlock</button>
+                        <p style="font-size: 12px; color: var(--gray); margin-top: 15px;">Hint: admin123</p>
+                    </div>
+                </div>
+                <div id="feeContent" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="icon green"><i class="fas fa-check-circle"></i></div><div class="info"><h4>₹45,00,000</h4><p>Total Collected</p></div></div>
+                        <div class="stat-card"><div class="icon red"><i class="fas fa-exclamation-circle"></i></div><div class="info"><h4>₹12,50,000</h4><p>Pending Dues</p></div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>Fee Records</h3><button class="btn btn-primary btn-sm" onclick="openModal('feeModal')"><i class="fas fa-plus"></i> Add Record</button></div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Student ID</th><th>Name</th><th>Department</th><th>Total Fee</th><th>Paid</th><th>Due</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    <tr><td>STU001</td><td>John Smith</td><td>CS</td><td>₹75,000</td><td>₹75,000</td><td>₹0</td><td><span class="status-badge status-paid">Paid</span></td></tr>
+                                    <tr><td>STU002</td><td>Sarah Johnson</td><td>ECE</td><td>₹75,000</td><td>₹50,000</td><td>₹25,000</td><td><span class="status-badge status-partial">Partial</span></td></tr>
+                                    <tr><td>STU003</td><td>Mike Brown</td><td>AIML</td><td>₹85,000</td><td>₹0</td><td>₹85,000</td><td><span class="status-badge status-pending">Pending</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="studentModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3>Add Student</h3><button class="modal-close" onclick="closeModal('studentModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="studentForm">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" required placeholder="Enter student name"></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="Enter email"></div>
+                    <div class="form-group"><label>Department</label><select name="department" required><option value="CS">Computer Science</option><option value="AIML">AI & ML</option><option value="ECE">Electronics</option><option value="EE">Electrical</option></select></div>
+                    <div class="form-group"><label>Year</label><select name="year" required><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn" onclick="closeModal('studentModal')">Cancel</button><button class="btn btn-primary" onclick="saveStudent()">Save</button></div>
+        </div>
+    </div>
+
+    <div id="scholarshipModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3>Add Scholarship</h3><button class="modal-close" onclick="closeModal('scholarshipModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="scholarshipForm">
+                    <div class="form-group"><label>Student ID</label><input type="text" name="studentId" required placeholder="Enter student ID"></div>
+                    <div class="form-group"><label>Type</label><select name="type" required><option value="Merit">Merit</option><option value="Sports">Sports</option><option value="Minority">Minority</option><option value="Income Based">Income Based</option></select></div>
+                    <div class="form-group"><label>Amount (₹)</label><input type="number" name="amount" required placeholder="Enter amount"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn" onclick="closeModal('scholarshipModal')">Cancel</button><button class="btn btn-primary" onclick="saveScholarship()">Save</button></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Success!</span></div>
+
+    <script>
+        // Configuration
+        const FEE_PASSWORD = 'admin123';
+        const DEMO_USERS = [
+            { email: 'chairman@college.com', password: 'chairman123', name: 'Dr. Robert Smith', role: 'chairman' },
+            { email: 'principal@college.com', password: 'principal123', name: 'Dr. Sarah Johnson', role: 'principal' },
+            { email: 'registrar@college.com', password: 'registrar123', name: 'Mr. John Davis', role: 'registrar' },
+            { email: 'hod@college.com', password: 'hod123', name: 'Dr. Anil Kumar', role: 'hod' },
+            { email: 'teacher@college.com', password: 'teacher123', name: 'Prof. Emily Wilson', role: 'teacher' },
+            { email: 'librarian@college.com', password: 'librarian123', name: 'Mrs. Mary Thomas', role: 'librarian' },
+            { email: 'accountant@college.com', password: 'accountant123', name: 'Mr. James Anderson', role: 'accountant' },
+            { email: 'warden@college.com', password: 'warden123', name: 'Mr. Rajesh Kumar', role: 'hostel_warden' },
+            { email: 'admission@college.com', password: 'admission123', name: 'Ms. Priya Sharma', role: 'admission_staff' }
+        ];
+        let currentUser = null;
+
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedUser = localStorage.getItem('cms_user');
+            if (savedUser) { currentUser = JSON.parse(savedUser); showDashboard(); }
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() { switchModule(this.dataset.module); });
+            });
+        });
+
+        // Auth
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            if (!email || !password || !role) { showToast('Please fill in all fields', 'error'); return; }
+            const user = DEMO_USERS.find(u => u.email === email && u.password === password);
+            if (user) {
+                if (user.role !== role) { showToast('Invalid role for this user', 'error'); return; }
+                currentUser = { email: user.email, name: user.name, role: user.role };
+                localStorage.setItem('cms_user', JSON.stringify(currentUser));
+                showToast('Welcome, ' + user.name + '!', 'success');
+                showDashboard();
+            } else { showToast('Invalid email or password', 'error'); }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('cms_user');
+            document.getElementById('mainDashboard').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'flex';
+            showToast('Logged out successfully', 'success');
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'flex';
+            document.getElementById('userName').textContent = currentUser.name;
+            switchModule('dashboard');
+        }
+
+        // Navigation
+        function switchModule(moduleName) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.module === moduleName) item.classList.add('active');
+            });
+            document.querySelectorAll('.module-content').forEach(m => m.classList.remove('active'));
+            const module = document.getElementById(moduleName + 'Module');
+            if (module) module.classList.add('active');
+            const titles = { 'dashboard': 'Dashboard', 'chain': 'Chain Management', 'departments': 'Departments', 'registrar': 'Registrar', 'admission': 'Admission Cell', 'students': 'Students', 'teachers': 'Teachers', 'library': 'Library', 'hostel': 'Hostel', 'accounts': 'Accounts' };
+            document.getElementById('moduleTitle').textContent = titles[moduleName] || 'Dashboard';
+        }
+
+        // Utils
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.className = 'toast ' + type + ' show';
+            document.getElementById('toastMessage').textContent = message;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+        function checkFeePassword() {
+            if (document.getElementById('feePassword').value === FEE_PASSWORD) {
+                document.getElementById('feePasswordSection').style.display = 'none';
+                document.getElementById('feeContent').style.display = 'block';
+                showToast('Access granted', 'success');
+            } else { showToast('Incorrect password', 'error'); }
+        }
+
+        function saveStudent() {
+            showToast('Student added successfully', 'success');
+            closeModal('studentModal');
+            document.getElementById('studentForm').reset();
+        }
+
+        function saveScholarship() {
+            showToast('Scholarship added successfully', 'success');
+            closeModal('scholarshipModal');
+            document.getElementById('scholarshipForm').reset();
+        }
+    </script>
+</body>
+</html>

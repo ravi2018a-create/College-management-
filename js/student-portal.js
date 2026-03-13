@@ -1,0 +1,948 @@
+// Student Portal JavaScript
+
+// Student State
+let currentStudent = null;
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    initStudentPortal();
+});
+
+// Initialize Student Portal
+function initStudentPortal() {
+    setupEventListeners();
+    checkStudentSession();
+}
+
+// Setup Event Listeners
+function setupEventListeners() {
+    // Login form
+    const loginForm = document.getElementById('studentLoginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleStudentLogin);
+    }
+
+    // Navigation items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const module = this.dataset.module;
+            if (module) {
+                switchModule(module);
+            }
+        });
+    });
+
+    // Logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+}
+
+// Check if student is already logged in
+function checkStudentSession() {
+    const savedStudent = localStorage.getItem('currentStudent');
+    if (savedStudent) {
+        currentStudent = JSON.parse(savedStudent);
+        showDashboard();
+        loadAllModuleData();
+    }
+}
+
+// Handle Student Login
+async function handleStudentLogin(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('studentEmail').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        showToast('Please enter both Email and Password', 'error');
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+
+    try {
+        // Try to find student in database
+        if (typeof supabase !== 'undefined' && window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data: student, error } = await window.CMS_CONFIG.supabase
+                .from('students')
+                .select('*')
+                .eq('email', email)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                throw error;
+            }
+
+            if (student) {
+                // For demo, accept 'student123' as password
+                if (password === 'student123') {
+                    currentStudent = student;
+                    localStorage.setItem('currentStudent', JSON.stringify(student));
+                    showDashboard();
+                    loadAllModuleData();
+                    showToast('Welcome back, ' + student.name + '!', 'success');
+                } else {
+                    showToast('Invalid password', 'error');
+                }
+            } else {
+                // Check demo students
+                const demoStudent = getDemoStudent(email, password);
+                if (demoStudent) {
+                    currentStudent = demoStudent;
+                    localStorage.setItem('currentStudent', JSON.stringify(demoStudent));
+                    showDashboard();
+                    loadAllModuleData();
+                    showToast('Welcome back, ' + demoStudent.name + '!', 'success');
+                } else {
+                    showToast('Student not found. Try: john.smith@college.edu / student123', 'error');
+                }
+            }
+        } else {
+            // Demo mode
+            const demoStudent = getDemoStudent(email, password);
+            if (demoStudent) {
+                currentStudent = demoStudent;
+                localStorage.setItem('currentStudent', JSON.stringify(demoStudent));
+                showDashboard();
+                loadAllModuleData();
+                showToast('Welcome back, ' + demoStudent.name + '!', 'success');
+            } else {
+                showToast('Invalid credentials. Try: john.smith@college.edu / student123', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showToast('Login failed. Please try again.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+    }
+}
+
+// Get Demo Student
+function getDemoStudent(email, password) {
+    const demoStudents = {
+        'john.smith@college.edu': {
+            id: 1,
+            student_id: 'STU001',
+            name: 'John Smith',
+            email: 'john.smith@college.edu',
+            phone: '9876543210',
+            department_id: 1,
+            department_name: 'Computer Science',
+            department: 'CS',
+            semester: 4,
+            year: 2,
+            batch: '2022-2026',
+            gender: 'Male',
+            dob: '2004-05-15',
+            address: '123 Main Street, City',
+            guardian_name: 'Robert Smith',
+            guardian_phone: '9876543211',
+            admission_date: '2022-07-15',
+            status: 'active'
+        },
+        'sarah.johnson@college.edu': {
+            id: 2,
+            student_id: 'STU002',
+            name: 'Sarah Johnson',
+            email: 'sarah.johnson@college.edu',
+            phone: '9876543212',
+            department_id: 2,
+            department_name: 'Electronics',
+            department: 'ECE',
+            semester: 6,
+            year: 3,
+            batch: '2021-2025',
+            gender: 'Female',
+            dob: '2003-08-20',
+            address: '456 Oak Avenue, City',
+            guardian_name: 'Michael Johnson',
+            guardian_phone: '9876543213',
+            admission_date: '2021-07-10',
+            status: 'active'
+        }
+    };
+
+    if (demoStudents[email] && password === 'student123') {
+        return demoStudents[email];
+    }
+    return null;
+}
+
+// Show Dashboard
+function showDashboard() {
+    document.getElementById('studentLoginSection').style.display = 'none';
+    document.getElementById('studentDashboard').style.display = 'flex';
+    
+    // Update student name in header
+    const studentNameEl = document.getElementById('studentName');
+    if (studentNameEl && currentStudent) {
+        studentNameEl.textContent = currentStudent.name;
+    }
+    
+    // Show profile module by default
+    switchModule('profile');
+}
+
+// Handle Logout
+function handleLogout() {
+    currentStudent = null;
+    localStorage.removeItem('currentStudent');
+    document.getElementById('studentDashboard').style.display = 'none';
+    document.getElementById('studentLoginSection').style.display = 'flex';
+    showToast('Logged out successfully', 'success');
+}
+
+// Switch Module
+function switchModule(moduleName) {
+    // Update navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.module === moduleName) {
+            item.classList.add('active');
+        }
+    });
+
+    // Hide all modules
+    document.querySelectorAll('.module-content').forEach(module => {
+        module.style.display = 'none';
+    });
+
+    // Show selected module
+    const selectedModule = document.getElementById(moduleName + 'Module');
+    if (selectedModule) {
+        selectedModule.style.display = 'block';
+    }
+
+    // Update header title
+    const titles = {
+        'profile': 'My Profile',
+        'fees': 'Fee Status',
+        'library': 'Library',
+        'hostel': 'Hostel',
+        'scholarship': 'Scholarships',
+        'notices': 'Notices'
+    };
+    
+    const moduleTitle = document.getElementById('moduleTitle');
+    if (moduleTitle) {
+        moduleTitle.textContent = titles[moduleName] || 'Dashboard';
+    }
+}
+
+// Load All Module Data
+function loadAllModuleData() {
+    loadProfileData();
+    loadFeeData();
+    loadLibraryData();
+    loadHostelData();
+    loadScholarshipData();
+    loadNoticesData();
+}
+
+// Load Profile Data
+function loadProfileData() {
+    if (!currentStudent) return;
+
+    // Update profile header
+    document.getElementById('profileName').textContent = currentStudent.name;
+    document.getElementById('profileRoll').textContent = currentStudent.student_id;
+    document.getElementById('profileDept').textContent = currentStudent.department_name || currentStudent.department || 'Computer Science';
+    document.getElementById('profileSemester').textContent = 'Semester ' + (currentStudent.semester || (currentStudent.year * 2) || 4);
+
+    // Update profile details
+    const details = {
+        'detailEmail': currentStudent.email,
+        'detailPhone': currentStudent.phone,
+        'detailDob': formatDate(currentStudent.dob),
+        'detailGender': currentStudent.gender,
+        'detailAddress': currentStudent.address,
+        'detailGuardian': currentStudent.guardian_name,
+        'detailGuardianPhone': currentStudent.guardian_phone,
+        'detailBatch': currentStudent.batch,
+        'detailAdmission': formatDate(currentStudent.admission_date),
+        'detailStatus': currentStudent.status
+    };
+
+    for (const [id, value] of Object.entries(details)) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || 'N/A';
+    }
+
+    // Load quick stats
+    loadQuickStats();
+}
+
+// Load Quick Stats
+async function loadQuickStats() {
+    // Demo stats
+    document.getElementById('statAttendance').textContent = '85%';
+    document.getElementById('statBooks').textContent = '2';
+    document.getElementById('statDueFees').textContent = '₹15,000';
+}
+
+// Load Fee Data
+async function loadFeeData() {
+    if (!currentStudent) return;
+
+    try {
+        let feeRecords = [];
+        
+        if (typeof supabase !== 'undefined') {
+            const { data, error } = await supabase
+                .from('fee_records')
+                .select('*')
+                .eq('student_id', currentStudent.student_id)
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                feeRecords = data;
+            }
+        }
+
+        // Use demo data if no records
+        if (feeRecords.length === 0) {
+            feeRecords = getDemoFeeRecords();
+        }
+
+        renderFeeData(feeRecords);
+    } catch (error) {
+        console.error('Error loading fees:', error);
+        renderFeeData(getDemoFeeRecords());
+    }
+}
+
+// Get Demo Fee Records
+function getDemoFeeRecords() {
+    return [
+        {
+            id: 1,
+            fee_type: 'Tuition Fee',
+            amount: 50000,
+            paid_amount: 50000,
+            status: 'paid',
+            due_date: '2024-06-30',
+            payment_date: '2024-06-15',
+            semester: 'Semester 3'
+        },
+        {
+            id: 2,
+            fee_type: 'Tuition Fee',
+            amount: 50000,
+            paid_amount: 35000,
+            status: 'partial',
+            due_date: '2024-12-31',
+            payment_date: '2024-10-15',
+            semester: 'Semester 4'
+        },
+        {
+            id: 3,
+            fee_type: 'Library Fee',
+            amount: 2000,
+            paid_amount: 2000,
+            status: 'paid',
+            due_date: '2024-07-15',
+            payment_date: '2024-07-10',
+            semester: 'Annual'
+        },
+        {
+            id: 4,
+            fee_type: 'Lab Fee',
+            amount: 5000,
+            paid_amount: 0,
+            status: 'pending',
+            due_date: '2024-12-31',
+            payment_date: null,
+            semester: 'Semester 4'
+        }
+    ];
+}
+
+// Render Fee Data
+function renderFeeData(records) {
+    let totalFee = 0;
+    let totalPaid = 0;
+
+    records.forEach(record => {
+        totalFee += parseFloat(record.amount) || 0;
+        totalPaid += parseFloat(record.paid_amount) || 0;
+    });
+
+    const totalDue = totalFee - totalPaid;
+
+    // Update fee overview cards
+    document.getElementById('totalFee').textContent = formatCurrency(totalFee);
+    document.getElementById('paidFee').textContent = formatCurrency(totalPaid);
+    document.getElementById('dueFee').textContent = formatCurrency(totalDue);
+
+    // Update status message
+    const statusMessage = document.getElementById('feeStatusMessage');
+    if (totalDue <= 0) {
+        statusMessage.className = 'fee-status-message success';
+        statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> All fees are paid. Your account is up to date.';
+    } else if (totalDue < totalFee * 0.5) {
+        statusMessage.className = 'fee-status-message warning';
+        statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle"></i> You have pending fees. Please clear your dues before the deadline.';
+    } else {
+        statusMessage.className = 'fee-status-message danger';
+        statusMessage.innerHTML = '<i class="fas fa-times-circle"></i> Significant fees pending. Please contact accounts department.';
+    }
+
+    // Render fee history table
+    const tbody = document.getElementById('feeHistoryTable');
+    if (tbody) {
+        tbody.innerHTML = records.map(record => `
+            <tr>
+                <td>${record.fee_type}</td>
+                <td>${record.semester || 'N/A'}</td>
+                <td>${formatCurrency(record.amount)}</td>
+                <td>${formatCurrency(record.paid_amount)}</td>
+                <td>${formatCurrency(record.amount - record.paid_amount)}</td>
+                <td>${formatDate(record.due_date)}</td>
+                <td><span class="status-badge status-${record.status}">${record.status}</span></td>
+            </tr>
+        `).join('');
+    }
+}
+
+// Load Library Data
+async function loadLibraryData() {
+    if (!currentStudent) return;
+
+    try {
+        let bookIssues = [];
+        
+        if (typeof supabase !== 'undefined') {
+            const { data, error } = await supabase
+                .from('book_issues')
+                .select(`
+                    *,
+                    books (title, author, isbn)
+                `)
+                .eq('student_id', currentStudent.student_id)
+                .order('issue_date', { ascending: false });
+
+            if (!error && data) {
+                bookIssues = data;
+            }
+        }
+
+        // Use demo data if no records
+        if (bookIssues.length === 0) {
+            bookIssues = getDemoBookIssues();
+        }
+
+        renderLibraryData(bookIssues);
+    } catch (error) {
+        console.error('Error loading library:', error);
+        renderLibraryData(getDemoBookIssues());
+    }
+}
+
+// Get Demo Book Issues
+function getDemoBookIssues() {
+    const today = new Date();
+    const dueDate1 = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const dueDate2 = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+    
+    return [
+        {
+            id: 1,
+            book_title: 'Introduction to Algorithms',
+            book_author: 'Thomas H. Cormen',
+            issue_date: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+            due_date: dueDate1.toISOString(),
+            status: 'issued',
+            books: { title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848' }
+        },
+        {
+            id: 2,
+            book_title: 'Database System Concepts',
+            book_author: 'Abraham Silberschatz',
+            issue_date: new Date(today.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+            due_date: dueDate2.toISOString(),
+            status: 'overdue',
+            books: { title: 'Database System Concepts', author: 'Abraham Silberschatz', isbn: '978-0078022159' }
+        },
+        {
+            id: 3,
+            book_title: 'Computer Networks',
+            book_author: 'Andrew S. Tanenbaum',
+            issue_date: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            due_date: new Date(today.getTime() - 16 * 24 * 60 * 60 * 1000).toISOString(),
+            return_date: new Date(today.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+            status: 'returned',
+            books: { title: 'Computer Networks', author: 'Andrew S. Tanenbaum', isbn: '978-0132126953' }
+        }
+    ];
+}
+
+// Render Library Data
+function renderLibraryData(bookIssues) {
+    const currentBooks = bookIssues.filter(b => b.status === 'issued' || b.status === 'overdue');
+    const overdueBooks = bookIssues.filter(b => b.status === 'overdue');
+
+    // Update stats
+    document.getElementById('currentBooksCount').textContent = currentBooks.length;
+    document.getElementById('overdueBooksCount').textContent = overdueBooks.length;
+
+    // Render current books
+    const currentBooksContainer = document.getElementById('currentBooks');
+    if (currentBooksContainer) {
+        if (currentBooks.length === 0) {
+            currentBooksContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-book"></i>
+                    <p>No books currently issued</p>
+                </div>
+            `;
+        } else {
+            currentBooksContainer.innerHTML = currentBooks.map(book => `
+                <tr>
+                    <td>${book.books?.title || book.book_title}</td>
+                    <td>${book.books?.author || book.book_author}</td>
+                    <td>${formatDate(book.issue_date)}</td>
+                    <td>${formatDate(book.due_date)}</td>
+                    <td><span class="status-badge status-${book.status}">${book.status}</span></td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    // Render book history
+    const historyContainer = document.getElementById('bookHistory');
+    if (historyContainer) {
+        const returnedBooks = bookIssues.filter(b => b.status === 'returned');
+        if (returnedBooks.length === 0) {
+            historyContainer.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center">No book return history</td>
+                </tr>
+            `;
+        } else {
+            historyContainer.innerHTML = returnedBooks.map(book => `
+                <tr>
+                    <td>${book.books?.title || book.book_title}</td>
+                    <td>${book.books?.author || book.book_author}</td>
+                    <td>${formatDate(book.issue_date)}</td>
+                    <td>${formatDate(book.return_date)}</td>
+                    <td><span class="status-badge status-returned">Returned</span></td>
+                </tr>
+            `).join('');
+        }
+    }
+}
+
+// Load Hostel Data
+async function loadHostelData() {
+    if (!currentStudent) return;
+
+    try {
+        let hostelAllocation = null;
+        
+        if (typeof supabase !== 'undefined') {
+            const { data, error } = await supabase
+                .from('hostel_allocations')
+                .select(`
+                    *,
+                    hostels (name, type, warden_name),
+                    rooms (room_number, floor, capacity)
+                `)
+                .eq('student_id', currentStudent.student_id)
+                .eq('status', 'active')
+                .single();
+
+            if (!error && data) {
+                hostelAllocation = data;
+            }
+        }
+
+        // Use demo data if no allocation
+        if (!hostelAllocation) {
+            hostelAllocation = getDemoHostelAllocation();
+        }
+
+        renderHostelData(hostelAllocation);
+    } catch (error) {
+        console.error('Error loading hostel:', error);
+        renderHostelData(getDemoHostelAllocation());
+    }
+}
+
+// Get Demo Hostel Allocation
+function getDemoHostelAllocation() {
+    return {
+        id: 1,
+        hostel_name: 'Boys Hostel A',
+        room_number: '204',
+        floor: '2nd Floor',
+        bed_number: 'B2',
+        hostel_type: 'AC',
+        warden_name: 'Mr. Rajesh Kumar',
+        warden_phone: '9876543220',
+        allocation_date: '2022-07-20',
+        mess_type: 'Vegetarian',
+        monthly_fee: 8000,
+        hostels: { name: 'Boys Hostel A', type: 'AC', warden_name: 'Mr. Rajesh Kumar' },
+        rooms: { room_number: '204', floor: '2nd Floor', capacity: 2 }
+    };
+}
+
+// Render Hostel Data
+function renderHostelData(allocation) {
+    const container = document.getElementById('hostelDetails');
+    
+    if (!allocation || !allocation.hostel_name) {
+        container.innerHTML = `
+            <div class="no-hostel-message">
+                <i class="fas fa-home"></i>
+                <h4>No Hostel Allocation</h4>
+                <p>You are not currently allocated to any hostel room.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="hostel-info-card">
+            <div class="hostel-info-header">
+                <i class="fas fa-building"></i>
+                <h3>${allocation.hostel_name || allocation.hostels?.name}</h3>
+                <p>Room ${allocation.room_number || allocation.rooms?.room_number}</p>
+            </div>
+            <div class="hostel-info-body">
+                <div class="hostel-detail-item">
+                    <label>Floor</label>
+                    <span>${allocation.floor || allocation.rooms?.floor || 'N/A'}</span>
+                </div>
+                <div class="hostel-detail-item">
+                    <label>Bed Number</label>
+                    <span>${allocation.bed_number || 'N/A'}</span>
+                </div>
+                <div class="hostel-detail-item">
+                    <label>Room Type</label>
+                    <span>${allocation.hostel_type || allocation.hostels?.type || 'Standard'}</span>
+                </div>
+                <div class="hostel-detail-item">
+                    <label>Warden</label>
+                    <span>${allocation.warden_name || allocation.hostels?.warden_name || 'N/A'}</span>
+                </div>
+                <div class="hostel-detail-item">
+                    <label>Warden Contact</label>
+                    <span>${allocation.warden_phone || 'N/A'}</span>
+                </div>
+                <div class="hostel-detail-item">
+                    <label>Mess Type</label>
+                    <span>${allocation.mess_type || 'Standard'}</span>
+                </div>
+                <div class="hostel-detail-item">
+                    <label>Allocation Date</label>
+                    <span>${formatDate(allocation.allocation_date)}</span>
+                </div>
+                <div class="hostel-detail-item">
+                    <label>Monthly Fee</label>
+                    <span>${formatCurrency(allocation.monthly_fee || 8000)}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Load Scholarship Data
+async function loadScholarshipData() {
+    if (!currentStudent) return;
+
+    try {
+        let scholarships = [];
+        let benefits = [];
+        
+        if (typeof supabase !== 'undefined') {
+            // Load scholarships
+            const { data: schData } = await supabase
+                .from('scholarships')
+                .select('*')
+                .eq('student_id', currentStudent.student_id);
+
+            if (schData) scholarships = schData;
+
+            // Load benefits
+            const { data: benData } = await supabase
+                .from('benefits')
+                .select('*')
+                .eq('student_id', currentStudent.student_id);
+
+            if (benData) benefits = benData;
+        }
+
+        // Use demo data if no records
+        if (scholarships.length === 0) {
+            scholarships = getDemoScholarships();
+        }
+        if (benefits.length === 0) {
+            benefits = getDemoBenefits();
+        }
+
+        renderScholarshipData(scholarships, benefits);
+    } catch (error) {
+        console.error('Error loading scholarships:', error);
+        renderScholarshipData(getDemoScholarships(), getDemoBenefits());
+    }
+}
+
+// Get Demo Scholarships
+function getDemoScholarships() {
+    return [
+        {
+            id: 1,
+            name: 'Merit Scholarship',
+            amount: 25000,
+            status: 'approved',
+            academic_year: '2024-25',
+            description: 'Awarded for academic excellence'
+        },
+        {
+            id: 2,
+            name: 'State Government Scholarship',
+            amount: 15000,
+            status: 'pending',
+            academic_year: '2024-25',
+            description: 'State-sponsored educational support'
+        }
+    ];
+}
+
+// Get Demo Benefits
+function getDemoBenefits() {
+    return [
+        {
+            id: 1,
+            name: 'Bus Pass Concession',
+            type: 'Transport',
+            description: '50% discount on annual bus pass'
+        },
+        {
+            id: 2,
+            name: 'Book Bank Facility',
+            type: 'Education',
+            description: 'Free textbooks from library book bank'
+        }
+    ];
+}
+
+// Render Scholarship Data
+function renderScholarshipData(scholarships, benefits) {
+    // Render scholarships
+    const scholarshipContainer = document.getElementById('scholarshipList');
+    if (scholarshipContainer) {
+        if (scholarships.length === 0) {
+            scholarshipContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-award"></i>
+                    <p>No scholarships applied</p>
+                </div>
+            `;
+        } else {
+            scholarshipContainer.innerHTML = scholarships.map(sch => `
+                <div class="scholarship-card ${sch.status}">
+                    <div class="scholarship-info">
+                        <h4>${sch.name}</h4>
+                        <p>${sch.description || sch.academic_year}</p>
+                    </div>
+                    <div class="scholarship-amount">
+                        <div class="amount">${formatCurrency(sch.amount)}</div>
+                        <span class="status-badge status-${sch.status}">${sch.status}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Render benefits
+    const benefitsContainer = document.getElementById('benefitsList');
+    if (benefitsContainer) {
+        if (benefits.length === 0) {
+            benefitsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-gift"></i>
+                    <p>No benefits availed</p>
+                </div>
+            `;
+        } else {
+            benefitsContainer.innerHTML = benefits.map(ben => `
+                <div class="benefit-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <h4>${ben.name}</h4>
+                        <p>${ben.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+// Load Notices Data
+async function loadNoticesData() {
+    try {
+        let notices = [];
+        
+        if (typeof supabase !== 'undefined') {
+            const { data, error } = await supabase
+                .from('notices')
+                .select('*')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                notices = data;
+            }
+        }
+
+        // Use demo data if no records
+        if (notices.length === 0) {
+            notices = getDemoNotices();
+        }
+
+        renderNoticesData(notices);
+    } catch (error) {
+        console.error('Error loading notices:', error);
+        renderNoticesData(getDemoNotices());
+    }
+}
+
+// Get Demo Notices
+function getDemoNotices() {
+    const today = new Date();
+    return [
+        {
+            id: 1,
+            title: 'Mid-Semester Examination Schedule',
+            content: 'Mid-semester examinations will be held from 15th to 22nd of this month. Please check your department notice board for the detailed timetable.',
+            category: 'exam',
+            priority: 'important',
+            created_at: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            id: 2,
+            title: 'Annual Sports Day Registration',
+            content: 'Registration for Annual Sports Day events is now open. Interested students can register at the Sports Department before the 20th.',
+            category: 'event',
+            priority: 'normal',
+            created_at: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            id: 3,
+            title: 'Library Extended Hours',
+            content: 'During examination period, the library will remain open from 8 AM to 10 PM. Make use of this extended timing for your exam preparation.',
+            category: 'general',
+            priority: 'normal',
+            created_at: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+            id: 4,
+            title: 'Fee Payment Deadline',
+            content: 'Last date for fee payment without fine is 30th of this month. Students with pending fees are requested to clear their dues immediately.',
+            category: 'important',
+            priority: 'urgent',
+            created_at: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()
+        }
+    ];
+}
+
+// Render Notices Data
+function renderNoticesData(notices) {
+    const container = document.getElementById('noticesList');
+    
+    if (!container) return;
+
+    if (notices.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-bullhorn"></i>
+                <p>No notices available</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = notices.map(notice => `
+        <div class="notice-card ${notice.priority === 'urgent' ? 'important' : notice.priority === 'important' ? 'urgent' : ''}">
+            <div class="notice-header">
+                <h4>${notice.title}</h4>
+                <span class="notice-date">${formatDate(notice.created_at)}</span>
+            </div>
+            <div class="notice-body">
+                <p>${notice.content}</p>
+            </div>
+            <span class="notice-tag ${notice.category}">${notice.category}</span>
+        </div>
+    `).join('');
+}
+
+// Utility Functions
+function formatCurrency(amount) {
+    return '₹' + (parseFloat(amount) || 0).toLocaleString('en-IN');
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+
+    // Add styles if not exist
+    if (!document.getElementById('toastStyles')) {
+        const style = document.createElement('style');
+        style.id = 'toastStyles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            }
+            .toast-success { background: #d4edda; color: #155724; }
+            .toast-error { background: #f8d7da; color: #721c24; }
+            .toast-info { background: #d1ecf1; color: #0c5460; }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.appendChild(toast);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
