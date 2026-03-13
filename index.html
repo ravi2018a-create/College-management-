@@ -638,9 +638,9 @@
                     <div class="card-header"><h3>Hostels</h3><button id="addHostelBtn" class="btn btn-primary btn-sm" onclick="openHostelModal()" style="display:none;"><i class="fas fa-plus"></i> Add Hostel</button></div>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>Name</th><th>Type</th><th>Total Rooms</th><th>Occupied</th><th>Vacant</th><th>Warden</th></tr></thead>
+                            <thead><tr><th>Name</th><th>Type</th><th>Total Rooms</th><th>Occupied</th><th>Vacant</th><th>Warden</th><th>Actions</th></tr></thead>
                             <tbody id="hostelTableBody">
-                                <tr><td colspan="6" style="text-align:center; color:var(--gray);">Loading hostels...</td></tr>
+                                <tr><td colspan="7" style="text-align:center; color:var(--gray);">Loading hostels...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -985,7 +985,7 @@
             hostel_warden: {
                 modules: ['dashboard', 'hostel', 'students', 'notices'],
                 canEdit: ['hostel', 'notices'],
-                canDelete: [],
+                canDelete: ['hostel'],
                 dataScope: 'all',
                 buttons: { addHostelBtn: true }
             },
@@ -1079,6 +1079,11 @@
             const addBookBtn = document.getElementById('addBookBtn');
             if (addBookBtn) {
                 addBookBtn.style.display = canEdit('library') ? 'inline-flex' : 'none';
+            }
+            
+            const addHostelBtn = document.getElementById('addHostelBtn');
+            if (addHostelBtn) {
+                addHostelBtn.style.display = canEdit('hostel') ? 'inline-flex' : 'none';
             }
             
             const addNoticeBtn = document.getElementById('addNoticeBtn');

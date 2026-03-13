@@ -49,6 +49,10 @@ function displayHostelData(hostels) {
     if (hostels.length > 0) {
         table.innerHTML = hostels.map(hostel => {
             const vacant = hostel.total_rooms - (hostel.occupied || 0);
+            // Check if current user can edit/delete hostels
+            const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+            const canEdit = currentUser.role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(currentUser.role);
+            
             return `
             <tr>
                 <td>${hostel.name}</td>
@@ -57,10 +61,23 @@ function displayHostelData(hostels) {
                 <td>${hostel.occupied || 0}</td>
                 <td>${vacant}</td>
                 <td>${hostel.warden_name || 'Not Assigned'}<br><small style="color: #666;">${hostel.warden_contact || ''}</small></td>
+                ${canEdit ? `
+                <td>
+                    <div class="action-btns">
+                        <button class="action-btn edit" onclick="editHostel('${hostel.id}')" title="Edit Hostel">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteHostel('${hostel.id}')" title="Delete Hostel">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>` : '<td>-</td>'}
             </tr>`;
         }).join('');
     } else {
-        table.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No hostels found</td></tr>';
+        const canEdit = JSON.parse(sessionStorage.getItem('user') || '{}').role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(JSON.parse(sessionStorage.getItem('user') || '{}').role);
+        const colspan = canEdit ? '7' : '6';
+        table.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center; color:var(--gray);">No hostels found</td></tr>`;
     }
 }
 
@@ -313,27 +330,40 @@ function viewHostel(id) {
 
 // Edit hostel
 function editHostel(id) {
-    const hostel = DEMO_HOSTELS.find(h => h.id === id);
-    if (!hostel) return;
+    const hostel = currentHostels.find(h => h.id === parseInt(id));
+    if (!hostel) {
+        showToast('Hostel not found', 'error');
+        return;
+    }
     
+    // Open modal with hostel data
     openHostelModal(id);
-    
-    setTimeout(() => {
-        document.getElementById('hostelName').value = hostel.name;
-        document.getElementById('hostelType').value = hostel.type;
-        document.getElementById('hostelRooms').value = hostel.totalRooms;
-        document.getElementById('hostelWarden').value = hostel.warden;
-        document.getElementById('hostelContact').value = hostel.contact;
-    }, 100);
 }
 
 // Delete hostel
-function deleteHostel(id) {
-    if (confirm('Are you sure you want to delete this hostel?')) {
-        DEMO_HOSTELS = DEMO_HOSTELS.filter(h => h.id !== id);
-        displayHostelData(DEMO_HOSTELS);
-        updateHostelStats();
-        showToast('Hostel deleted successfully', 'success');
+async function deleteHostel(id) {
+    if (!confirm('Are you sure you want to delete this hostel? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const result = await window.CMS_CONFIG.supabase
+            .from('hostels')
+            .delete()
+            .eq('id', id);
+            
+        if (result.error) {
+            console.error('Error deleting hostel:', result.error);
+            showToast('Error deleting hostel: ' + result.error.message, 'error');
+            return;
+        }
+        
+        showToast('Hostel deleted successfully!', 'success');
+        loadHostelData(); // Reload the data
+        
+    } catch (error) {
+        console.error('Error deleting hostel:', error);
+        showToast('Error deleting hostel', 'error');
     }
 }
 
