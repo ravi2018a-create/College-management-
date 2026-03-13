@@ -433,36 +433,25 @@ async function saveHostel() {
             .insert([payload]);
     };
 
-    const mapSchemaFallbackPayload = (payload, errorMessage) => {
-        const nextPayload = { ...payload };
-
-        if (errorMessage.includes("'facilities'")) {
-            delete nextPayload.facilities;
-        }
-
-        if (errorMessage.includes("'fee_per_month'")) {
-            delete nextPayload.fee_per_month;
-        }
-
-        if (errorMessage.includes("'warden_name'")) {
-            delete nextPayload.warden_name;
-            nextPayload.warden = wardenName;
-        }
-
-        if (errorMessage.includes("'warden_contact'")) {
-            delete nextPayload.warden_contact;
-            nextPayload.contact = wardenContact;
-        }
-
-        return nextPayload;
-    };
-
     try {
         let result = await persistHostel(hostelData);
 
+        // If any column is missing, retry with only core columns
         if (result.error && result.error.code === 'PGRST204') {
-            const fallbackPayload = mapSchemaFallbackPayload(hostelData, result.error.message || '');
-            result = await persistHostel(fallbackPayload);
+            console.warn('Schema mismatch, retrying with core columns only:', result.error.message);
+            const corePayload = {
+                name: hostelData.name,
+                type: hostelData.type,
+                total_rooms: hostelData.total_rooms,
+                occupied: hostelData.occupied ?? 0
+            };
+            // Try warden_name/warden_contact first, fall back to warden/contact
+            const tryWithWardenName = { ...corePayload, warden_name: wardenName, warden_contact: wardenContact };
+            result = await persistHostel(tryWithWardenName);
+            if (result.error && result.error.code === 'PGRST204') {
+                const tryWithWarden = { ...corePayload, warden: wardenName, contact: wardenContact };
+                result = await persistHostel(tryWithWarden);
+            }
         }
 
         if (result.error) {
