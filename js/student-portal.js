@@ -1318,6 +1318,33 @@ async function loadOrganizationData() {
     }
     
     try {
+        // Load chain management (Chairman & Principal)
+        const { data: chainData, error: chainError } = await window.CMS_CONFIG.supabase
+            .from('chain_management')
+            .select('*');
+        
+        if (!chainError && chainData) {
+            chainData.forEach(person => {
+                if (person.position === 'Chairman') {
+                    document.getElementById('chairmanName').textContent = person.name || 'N/A';
+                    document.getElementById('chairmanEmail').textContent = person.email || '-';
+                } else if (person.position === 'Principal') {
+                    document.getElementById('principalName').textContent = person.name || 'N/A';
+                    document.getElementById('principalEmail').textContent = person.email || '-';
+                }
+            });
+        }
+        
+        // Load departments
+        const { data: departments, error: deptError } = await window.CMS_CONFIG.supabase
+            .from('departments')
+            .select('*')
+            .order('code');
+        
+        if (!deptError && departments) {
+            displayDepartmentCards(departments);
+        }
+        
         // Load teachers
         const { data: teachers, error: teacherError } = await window.CMS_CONFIG.supabase
             .from('teachers')
@@ -1327,27 +1354,89 @@ async function loadOrganizationData() {
         if (!teacherError && teachers) {
             allOrgTeachers = teachers;
             displayOrgTeachers(teachers);
-            updateOrgDepartmentCounts(teachers, 'teacher');
+            
+            // Update department counts after teachers loaded
+            if (departments) {
+                updateDepartmentCounts(departments, teachers);
+            }
         } else {
             document.getElementById('studentOrgTeachersTable').innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No teachers found</td></tr>';
         }
         
-        // Load students
+        // Load students for counts
         const { data: students, error: studentError } = await window.CMS_CONFIG.supabase
             .from('students')
-            .select('*')
-            .order('department', { ascending: true });
+            .select('*');
         
         if (!studentError && students) {
             allOrgStudents = students;
-            displayOrgStudents(students);
-            updateOrgDepartmentCounts(students, 'student');
-        } else {
-            document.getElementById('studentOrgStudentsTable').innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No students found</td></tr>';
+            
+            // Update department counts with students
+            if (departments) {
+                updateDepartmentCounts(departments, teachers, students);
+            }
         }
     } catch (error) {
         console.error('Error loading organization data:', error);
     }
+}
+
+function displayDepartmentCards(departments) {
+    const grid = document.getElementById('departmentsGrid');
+    if (!grid) return;
+    
+    if (!departments || departments.length === 0) {
+        grid.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 40px; color: var(--gray);"><p>No departments found</p></div>';
+        return;
+    }
+    
+    const gradients = [
+        'linear-gradient(135deg, #667eea, #764ba2)',
+        'linear-gradient(135deg, #f093fb, #f5576c)',
+        'linear-gradient(135deg, #4facfe, #00f2fe)',
+        'linear-gradient(135deg, #43e97b, #38f9d7)',
+        'linear-gradient(135deg, #fa709a, #fee140)',
+        'linear-gradient(135deg, #30cfd0, #330867)'
+    ];
+    
+    grid.innerHTML = departments.map((dept, index) => `
+        <div style="background: ${gradients[index % gradients.length]}; color: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div style="margin-bottom: 15px;">
+                <i class="fas fa-graduation-cap" style="font-size: 36px; opacity: 0.9;"></i>
+            </div>
+            <h4 style="margin-bottom: 5px; font-size: 18px;">${dept.name || 'Unknown'}</h4>
+            <p style="font-size: 12px; opacity: 0.8; margin-bottom: 15px;">Code: ${dept.code || 'N/A'}</p>
+            <div style="border-top: 1px solid rgba(255,255,255,0.3); padding-top: 15px; margin-top: 15px;">
+                <p style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">
+                    <i class="fas fa-user-tie"></i> HOD: ${dept.hod || 'Not Assigned'}
+                </p>
+                <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+                    <div>
+                        <p style="font-size: 22px; font-weight: bold;" id="dept-${dept.code}-teachers">-</p>
+                        <p style="font-size: 12px; opacity: 0.9;">Teachers</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 22px; font-weight: bold;" id="dept-${dept.code}-students">-</p>
+                        <p style="font-size: 12px; opacity: 0.9;">Students</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateDepartmentCounts(departments, teachers, students) {
+    departments.forEach(dept => {
+        // Count teachers
+        const teacherCount = teachers ? teachers.filter(t => t.department === dept.name || t.department === dept.code).length : 0;
+        const teacherEl = document.getElementById(`dept-${dept.code}-teachers`);
+        if (teacherEl) teacherEl.textContent = teacherCount;
+        
+        // Count students
+        const studentCount = students ? students.filter(s => s.department === dept.name || s.department === dept.code).length : 0;
+        const studentEl = document.getElementById(`dept-${dept.code}-students`);
+        if (studentEl) studentEl.textContent = studentCount;
+    });
 }
 
 function displayOrgTeachers(teachers) {
