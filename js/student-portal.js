@@ -28,6 +28,10 @@ function setupEventListeners() {
             const module = this.dataset.module;
             if (module) {
                 switchModule(module);
+                // Close sidebar on mobile after selecting
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.sidebar')?.classList.remove('active');
+                }
             }
         });
     });
@@ -36,6 +40,33 @@ function setupEventListeners() {
     const logoutBtn = document.getElementById('studentLogoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
+    }
+
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.toggle('active');
+                }
+            }
+        });
+    }
+
+    // Close sidebar when clicking overlay
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', function() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('active');
+            }
+            sidebarOverlay.classList.remove('active');
+        });
     }
 }
 

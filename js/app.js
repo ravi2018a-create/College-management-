@@ -130,12 +130,38 @@ function initializeModules() {
 function setupResponsiveMenu() {
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
     
-    if (menuToggle) {
+    if (menuToggle && sidebar) {
         menuToggle.addEventListener('click', function() {
             sidebar.classList.toggle('active');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.toggle('active');
+            }
         });
     }
+
+    // Close sidebar when clicking overlay
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', function() {
+            if (sidebar) {
+                sidebar.classList.remove('active');
+            }
+            sidebarOverlay.classList.remove('active');
+        });
+    }
+
+    // Close sidebar when clicking nav item on mobile
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            if (window.innerWidth <= 992 && sidebar) {
+                sidebar.classList.remove('active');
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+        });
+    });
 }
 
 // Setup tabs
