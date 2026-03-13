@@ -33,7 +33,7 @@ function setupEventListeners() {
     });
 
     // Logout button
-    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutBtn = document.getElementById('studentLogoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
     }
@@ -72,7 +72,7 @@ async function handleStudentLogin(e) {
                 .from('students')
                 .select('*')
                 .eq('email', email)
-                .single();
+                .maybeSingle();
 
             if (error && error.code !== 'PGRST116') {
                 throw error;
@@ -251,23 +251,24 @@ function loadProfileData() {
     if (!currentStudent) return;
 
     // Update profile header
-    document.getElementById('profileName').textContent = currentStudent.name;
-    document.getElementById('profileRoll').textContent = currentStudent.student_id;
-    document.getElementById('profileDept').textContent = currentStudent.department_name || currentStudent.department || 'Computer Science';
-    document.getElementById('profileSemester').textContent = 'Semester ' + (currentStudent.semester || (currentStudent.year * 2) || 4);
+    const profileName = document.getElementById('profileName');
+    const profileId = document.getElementById('profileId');
+    const profileDept = document.getElementById('profileDept');
+    
+    if (profileName) profileName.textContent = currentStudent.name || 'Student';
+    if (profileId) profileId.textContent = currentStudent.student_id || 'N/A';
+    if (profileDept) profileDept.textContent = currentStudent.department_name || currentStudent.department || 'Computer Science';
 
-    // Update profile details
+    // Update profile details (matching HTML element IDs)
     const details = {
-        'detailEmail': currentStudent.email,
-        'detailPhone': currentStudent.phone,
-        'detailDob': formatDate(currentStudent.dob),
-        'detailGender': currentStudent.gender,
-        'detailAddress': currentStudent.address,
-        'detailGuardian': currentStudent.guardian_name,
-        'detailGuardianPhone': currentStudent.guardian_phone,
-        'detailBatch': currentStudent.batch,
-        'detailAdmission': formatDate(currentStudent.admission_date),
-        'detailStatus': currentStudent.status
+        'infoName': currentStudent.name,
+        'infoStudentId': currentStudent.student_id,
+        'infoEmail': currentStudent.email,
+        'infoPhone': currentStudent.phone || 'N/A',
+        'infoDepartment': currentStudent.department_name || currentStudent.department || 'Computer Science',
+        'infoYear': currentStudent.year ? 'Year ' + currentStudent.year : 'N/A',
+        'infoHostel': currentStudent.hostel_status || 'Day Scholar',
+        'infoFeeStatus': currentStudent.fee_status || 'Pending'
     };
 
     for (const [id, value] of Object.entries(details)) {
@@ -281,10 +282,14 @@ function loadProfileData() {
 
 // Load Quick Stats
 async function loadQuickStats() {
-    // Demo stats
-    document.getElementById('statAttendance').textContent = '85%';
-    document.getElementById('statBooks').textContent = '2';
-    document.getElementById('statDueFees').textContent = '₹15,000';
+    // Demo stats (matching HTML element IDs)
+    const booksIssued = document.getElementById('booksIssued');
+    const feesDue = document.getElementById('feesDue');
+    const scholarshipStatus = document.getElementById('scholarshipStatus');
+    
+    if (booksIssued) booksIssued.textContent = '2';
+    if (feesDue) feesDue.textContent = '₹15,000';
+    if (scholarshipStatus) scholarshipStatus.textContent = 'Merit';
 }
 
 // Load Fee Data
