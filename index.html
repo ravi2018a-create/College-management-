@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>College Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -609,9 +610,11 @@
             <div class="modal-body">
                 <form id="studentForm">
                     <div class="form-group"><label>Name</label><input type="text" name="name" required placeholder="Enter student name"></div>
-                    <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="Enter email"></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="Enter email (used for Student Portal login)"></div>
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" placeholder="Enter phone number"></div>
                     <div class="form-group"><label>Department</label><select name="department" required><option value="CS">Computer Science</option><option value="AIML">AI & ML</option><option value="ECE">Electronics</option><option value="EE">Electrical</option></select></div>
                     <div class="form-group"><label>Year</label><select name="year" required><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
+                    <p style="font-size:12px; color:var(--gray); margin-top:10px;"><i class="fas fa-info-circle"></i> Default Student Portal password: <strong>student123</strong></p>
                 </form>
             </div>
             <div class="modal-footer"><button class="btn" onclick="closeModal('studentModal')">Cancel</button><button class="btn btn-primary" onclick="saveStudent()">Save</button></div>
@@ -706,6 +709,14 @@
     <div id="toast" class="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Success!</span></div>
 
     <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qumvgdhznkmlccexoawo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1bXZnZGh6bmttbGNjZXhvYXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODU5MTEsImV4cCI6MjA4ODk2MTkxMX0.fDK7bJMVyTWEgiq84EZ6lSscmHAgVSjKpDZ7iqjijFU';
+        let supabaseClient = null;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) { console.warn('Supabase not available, using local mode'); }
+
         // Configuration
         const FEE_PASSWORD = 'admin123';
         const DEMO_USERS = [
@@ -803,18 +814,45 @@
             const form = document.getElementById('studentForm');
             const name = form.name.value.trim();
             const email = form.email.value.trim();
+            const phone = form.phone.value.trim();
             const dept = form.department.value;
             const year = form.year.value;
             if (!name || !email) { showToast('Please fill all required fields', 'error'); return; }
             studentCounter++;
             const stuId = 'STU' + String(studentCounter).padStart(3, '0');
+            const defaultPassword = 'student123';
+
+            // Save to Supabase database
+            if (supabaseClient) {
+                supabaseClient.from('students').insert({
+                    student_id: stuId,
+                    name: name,
+                    email: email.toLowerCase(),
+                    phone: phone || null,
+                    department: dept,
+                    year: parseInt(year),
+                    password_hash: defaultPassword
+                }).then(({ error }) => {
+                    if (error) {
+                        console.error('DB insert error:', error);
+                        showToast('Saved locally. DB error: ' + error.message, 'error');
+                    } else {
+                        showToast('Student saved to database! They can login at Student Portal with: ' + email + ' / ' + defaultPassword, 'success');
+                    }
+                });
+            }
+
+            // Add to table
             const tbody = document.getElementById('studentsTable');
             const row = document.createElement('tr');
             row.innerHTML = `<td>${stuId}</td><td>${name}</td><td>${dept}</td><td>${year}</td><td>No</td><td><span class="status-badge status-pending">Pending</span></td><td class="actions"><button class="btn btn-icon btn-primary"><i class="fas fa-eye"></i></button></td>`;
             tbody.insertBefore(row, tbody.firstChild);
             row.style.background = '#e8f5e9';
             setTimeout(() => row.style.background = '', 2000);
-            showToast('Student ' + name + ' (ID: ' + stuId + ') added successfully', 'success');
+
+            // Show login credentials alert
+            alert('Student Registered Successfully!\n\nStudent ID: ' + stuId + '\nName: ' + name + '\nEmail: ' + email + '\n\nStudent Portal Login:\nEmail: ' + email + '\nPassword: ' + defaultPassword + '\n\nPortal: student-portal.html');
+
             closeModal('studentModal');
             form.reset();
             switchModule('students');
@@ -841,6 +879,7 @@
             const form = document.getElementById('admissionForm');
             const name = form.name.value.trim();
             const email = form.email.value.trim();
+            const phone = form.phone.value.trim();
             const dept = form.department.value;
             const year = form.year.value;
             if (!name || !email) { showToast('Please fill all required fields', 'error'); return; }
@@ -848,20 +887,47 @@
             const admNo = 'ADM2025' + String(admissionCounter).padStart(3, '0');
             const today = new Date();
             const dateStr = today.getDate() + '-' + today.toLocaleString('en-US', {month:'short'}) + '-' + today.getFullYear();
+            studentCounter++;
+            const stuId = 'STU' + String(studentCounter).padStart(3, '0');
+            const defaultPassword = 'student123';
+
+            // Save to Supabase database
+            if (supabaseClient) {
+                supabaseClient.from('students').insert({
+                    student_id: stuId,
+                    name: name,
+                    email: email.toLowerCase(),
+                    phone: phone || null,
+                    department: dept,
+                    year: parseInt(year),
+                    password_hash: defaultPassword
+                }).then(({ error }) => {
+                    if (error) {
+                        console.error('DB insert error:', error);
+                        showToast('Saved locally. DB error: ' + error.message, 'error');
+                    } else {
+                        showToast('Student saved to database! Portal login: ' + email + ' / ' + defaultPassword, 'success');
+                    }
+                });
+            }
+
+            // Add to admissions table
             const admTbody = document.getElementById('admissionsTable');
             const admRow = document.createElement('tr');
             admRow.innerHTML = `<td>${admNo}</td><td>${name}</td><td>${dept}</td><td>${year}</td><td>${dateStr}</td><td><span class="status-badge status-active">Active</span></td>`;
             admTbody.insertBefore(admRow, admTbody.firstChild);
             admRow.style.background = '#e8f5e9';
             setTimeout(() => admRow.style.background = '', 2000);
+
             // Also add to students table
-            studentCounter++;
-            const stuId = 'STU' + String(studentCounter).padStart(3, '0');
             const stuTbody = document.getElementById('studentsTable');
             const stuRow = document.createElement('tr');
             stuRow.innerHTML = `<td>${stuId}</td><td>${name}</td><td>${dept}</td><td>${year}</td><td>No</td><td><span class="status-badge status-pending">Pending</span></td><td class="actions"><button class="btn btn-icon btn-primary"><i class="fas fa-eye"></i></button></td>`;
             stuTbody.insertBefore(stuRow, stuTbody.firstChild);
-            showToast('Admission ' + admNo + ' - ' + name + ' registered successfully! Also added as Student ' + stuId, 'success');
+
+            // Show login credentials alert
+            alert('Admission Successful!\n\nAdmission No: ' + admNo + '\nStudent ID: ' + stuId + '\nName: ' + name + '\nEmail: ' + email + '\n\nStudent Portal Login:\nEmail: ' + email + '\nPassword: ' + defaultPassword + '\n\nPortal: student-portal.html');
+
             closeModal('admissionModal');
             form.reset();
         }
