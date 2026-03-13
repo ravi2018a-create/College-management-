@@ -335,8 +335,8 @@ async function loadFeeData() {
     try {
         let feeRecords = [];
         
-        if (typeof supabase !== 'undefined') {
-            const { data, error } = await supabase
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('fee_records')
                 .select('*')
                 .eq('student_id', currentStudent.student_id)
@@ -460,8 +460,8 @@ async function loadLibraryData() {
     try {
         let bookIssues = [];
         
-        if (typeof supabase !== 'undefined') {
-            const { data, error } = await supabase
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('book_issues')
                 .select(`
                     *,
@@ -589,8 +589,8 @@ async function loadHostelData() {
     try {
         let hostelAllocation = null;
         
-        if (typeof supabase !== 'undefined') {
-            const { data, error } = await supabase
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('hostel_allocations')
                 .select(`
                     *,
@@ -599,7 +599,7 @@ async function loadHostelData() {
                 `)
                 .eq('student_id', currentStudent.student_id)
                 .eq('status', 'active')
-                .single();
+                .maybeSingle();
 
             if (!error && data) {
                 hostelAllocation = data;
@@ -707,9 +707,9 @@ async function loadScholarshipData() {
         let scholarships = [];
         let benefits = [];
         
-        if (typeof supabase !== 'undefined') {
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
             // Load scholarships
-            const { data: schData } = await supabase
+            const { data: schData } = await window.CMS_CONFIG.supabase
                 .from('scholarships')
                 .select('*')
                 .eq('student_id', currentStudent.student_id);
@@ -717,7 +717,7 @@ async function loadScholarshipData() {
             if (schData) scholarships = schData;
 
             // Load benefits
-            const { data: benData } = await supabase
+            const { data: benData } = await window.CMS_CONFIG.supabase
                 .from('benefits')
                 .select('*')
                 .eq('student_id', currentStudent.student_id);
