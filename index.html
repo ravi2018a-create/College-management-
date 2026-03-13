@@ -325,11 +325,11 @@
             </form>
             <div class="login-footer">
                 <p><strong>Demo Credentials:</strong></p>
-                <p style="font-size:11px; margin-top:8px;">chairman@college.com / chairman123</p>
-                <p style="font-size:11px;">principal@college.com / principal123</p>
-                <p style="font-size:11px;">registrar@college.com / registrar123</p>
-                <p style="font-size:11px;">librarian@college.com / librarian123</p>
-                <p style="font-size:11px;">accountant@college.com / accountant123</p>
+                <p style="font-size:11px; margin-top:8px;">chairman@college.edu / chairman123</p>
+                <p style="font-size:11px;">principal@college.edu / principal123</p>
+                <p style="font-size:11px;">registrar@college.edu / registrar123</p>
+                <p style="font-size:11px;">library@college.edu / librarian123</p>
+                <p style="font-size:11px;">accounts@college.edu / accountant123</p>
                 <p style="margin-top: 15px;">
                     <a href="student-portal.html"><i class="fas fa-user-graduate"></i> Student Portal</a>
                 </p>
@@ -628,6 +628,76 @@
         </div>
     </div>
 
+    <!-- Admission Modal -->
+    <div id="admissionModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3>New Admission</h3><button class="modal-close" onclick="closeModal('admissionModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="admissionForm">
+                    <div class="form-group"><label>Student Name</label><input type="text" name="name" required placeholder="Enter student name"></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="Enter email"></div>
+                    <div class="form-group"><label>Phone</label><input type="text" name="phone" placeholder="Enter phone number"></div>
+                    <div class="form-group"><label>Department</label><select name="department" required><option value="CS">Computer Science</option><option value="AIML">AI & ML</option><option value="ECE">Electronics</option><option value="EE">Electrical</option></select></div>
+                    <div class="form-group"><label>Year</label><select name="year" required><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn" onclick="closeModal('admissionModal')">Cancel</button><button class="btn btn-primary" onclick="saveAdmission()">Save</button></div>
+        </div>
+    </div>
+
+    <!-- Teacher Modal -->
+    <div id="teacherModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3>Add Teacher</h3><button class="modal-close" onclick="closeModal('teacherModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="teacherForm">
+                    <div class="form-group"><label>Name</label><input type="text" name="name" required placeholder="Enter teacher name"></div>
+                    <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="Enter email"></div>
+                    <div class="form-group"><label>Department</label><select name="department" required><option value="CS">Computer Science</option><option value="AIML">AI & ML</option><option value="ECE">Electronics</option><option value="EE">Electrical</option></select></div>
+                    <div class="form-group"><label>Designation</label><select name="designation" required><option value="Professor">Professor</option><option value="Associate Professor">Associate Professor</option><option value="Assistant Professor">Assistant Professor</option><option value="Lecturer">Lecturer</option></select></div>
+                    <div class="form-group"><label>Subjects</label><input type="text" name="subjects" placeholder="e.g. Data Structures, Algorithms"></div>
+                    <div class="form-group"><label>Contact</label><input type="text" name="contact" placeholder="Enter phone number"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn" onclick="closeModal('teacherModal')">Cancel</button><button class="btn btn-primary" onclick="saveTeacher()">Save</button></div>
+        </div>
+    </div>
+
+    <!-- Book Modal -->
+    <div id="bookModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3>Add Book</h3><button class="modal-close" onclick="closeModal('bookModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="bookForm">
+                    <div class="form-group"><label>Book ID</label><input type="text" name="bookId" required placeholder="e.g. BK004"></div>
+                    <div class="form-group"><label>Title</label><input type="text" name="title" required placeholder="Enter book title"></div>
+                    <div class="form-group"><label>Author</label><input type="text" name="author" required placeholder="Enter author name"></div>
+                    <div class="form-group"><label>Subject</label><input type="text" name="subject" placeholder="Enter subject"></div>
+                    <div class="form-group"><label>ISBN</label><input type="text" name="isbn" placeholder="Enter ISBN"></div>
+                    <div class="form-group"><label>Total Copies</label><input type="number" name="total" required placeholder="Enter total copies" min="1"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn" onclick="closeModal('bookModal')">Cancel</button><button class="btn btn-primary" onclick="saveBook()">Save</button></div>
+        </div>
+    </div>
+
+    <!-- Fee Modal -->
+    <div id="feeModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3>Add Fee Record</h3><button class="modal-close" onclick="closeModal('feeModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="feeForm">
+                    <div class="form-group"><label>Student ID</label><input type="text" name="studentId" required placeholder="e.g. STU001"></div>
+                    <div class="form-group"><label>Student Name</label><input type="text" name="studentName" required placeholder="Enter student name"></div>
+                    <div class="form-group"><label>Department</label><select name="department" required><option value="CS">Computer Science</option><option value="AIML">AI & ML</option><option value="ECE">Electronics</option><option value="EE">Electrical</option></select></div>
+                    <div class="form-group"><label>Total Fee (₹)</label><input type="number" name="totalFee" required placeholder="Enter total fee"></div>
+                    <div class="form-group"><label>Paid Amount (₹)</label><input type="number" name="paidAmount" required placeholder="Enter paid amount"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn" onclick="closeModal('feeModal')">Cancel</button><button class="btn btn-primary" onclick="saveFeeRecord()">Save</button></div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Success!</span></div>
 
@@ -635,15 +705,15 @@
         // Configuration
         const FEE_PASSWORD = 'admin123';
         const DEMO_USERS = [
-            { email: 'chairman@college.com', password: 'chairman123', name: 'Dr. Robert Smith', role: 'chairman' },
-            { email: 'principal@college.com', password: 'principal123', name: 'Dr. Sarah Johnson', role: 'principal' },
-            { email: 'registrar@college.com', password: 'registrar123', name: 'Mr. John Davis', role: 'registrar' },
-            { email: 'hod@college.com', password: 'hod123', name: 'Dr. Anil Kumar', role: 'hod' },
-            { email: 'teacher@college.com', password: 'teacher123', name: 'Prof. Emily Wilson', role: 'teacher' },
-            { email: 'librarian@college.com', password: 'librarian123', name: 'Mrs. Mary Thomas', role: 'librarian' },
-            { email: 'accountant@college.com', password: 'accountant123', name: 'Mr. James Anderson', role: 'accountant' },
-            { email: 'warden@college.com', password: 'warden123', name: 'Mr. Rajesh Kumar', role: 'hostel_warden' },
-            { email: 'admission@college.com', password: 'admission123', name: 'Ms. Priya Sharma', role: 'admission_staff' }
+            { email: 'chairman@college.edu', password: 'chairman123', name: 'Dr. Robert Smith', role: 'chairman' },
+            { email: 'principal@college.edu', password: 'principal123', name: 'Dr. Sarah Johnson', role: 'principal' },
+            { email: 'registrar@college.edu', password: 'registrar123', name: 'Mr. Suresh Kumar', role: 'registrar' },
+            { email: 'hod.cs@college.edu', password: 'hod123', name: 'Dr. Anil Kumar', role: 'hod' },
+            { email: 'teacher@college.edu', password: 'teacher123', name: 'Prof. Meera Singh', role: 'teacher' },
+            { email: 'library@college.edu', password: 'librarian123', name: 'Mrs. Anjali Sharma', role: 'librarian' },
+            { email: 'accounts@college.edu', password: 'accountant123', name: 'Mr. Ramesh Gupta', role: 'accountant' },
+            { email: 'warden@college.edu', password: 'warden123', name: 'Mr. Vijay Singh', role: 'hostel_warden' },
+            { email: 'admissions@college.edu', password: 'admission123', name: 'Mrs. Priya Iyer', role: 'admission_staff' }
         ];
         let currentUser = null;
 
@@ -711,8 +781,8 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
-        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        function openModal(modalId) { const el = document.getElementById(modalId); if (el) el.classList.add('active'); else showToast('Modal not found', 'error'); }
+        function closeModal(modalId) { const el = document.getElementById(modalId); if (el) el.classList.remove('active'); }
 
         function checkFeePassword() {
             if (document.getElementById('feePassword').value === FEE_PASSWORD) {
@@ -732,6 +802,30 @@
             showToast('Scholarship added successfully', 'success');
             closeModal('scholarshipModal');
             document.getElementById('scholarshipForm').reset();
+        }
+
+        function saveAdmission() {
+            showToast('Admission added successfully', 'success');
+            closeModal('admissionModal');
+            document.getElementById('admissionForm').reset();
+        }
+
+        function saveTeacher() {
+            showToast('Teacher added successfully', 'success');
+            closeModal('teacherModal');
+            document.getElementById('teacherForm').reset();
+        }
+
+        function saveBook() {
+            showToast('Book added successfully', 'success');
+            closeModal('bookModal');
+            document.getElementById('bookForm').reset();
+        }
+
+        function saveFeeRecord() {
+            showToast('Fee record added successfully', 'success');
+            closeModal('feeModal');
+            document.getElementById('feeForm').reset();
         }
     </script>
 </body>
