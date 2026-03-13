@@ -842,6 +842,44 @@ ALTER TABLE hostel_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hostel_allocations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notices ENABLE ROW LEVEL SECURITY;
 
+-- Create permissive policies for client-side app (since we're not using Supabase Auth)
+-- For production, configure proper authentication and restrict these policies
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access on students" ON students FOR SELECT USING (true);
+    CREATE POLICY "Allow public write access on students" ON students FOR ALL USING (true);
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access on teachers" ON teachers FOR SELECT USING (true);
+    CREATE POLICY "Allow public write access on teachers" ON teachers FOR ALL USING (true);
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access on library_books" ON library_books FOR SELECT USING (true);
+    CREATE POLICY "Allow public write access on library_books" ON library_books FOR ALL USING (true);
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access on book_issues" ON book_issues FOR SELECT USING (true);
+    CREATE POLICY "Allow public write access on book_issues" ON book_issues FOR ALL USING (true);
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access on hostel_requests" ON hostel_requests FOR SELECT USING (true);
+    CREATE POLICY "Allow public write access on hostel_requests" ON hostel_requests FOR ALL USING (true);
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access on hostel_allocations" ON hostel_allocations FOR SELECT USING (true);
+    CREATE POLICY "Allow public write access on hostel_allocations" ON hostel_allocations FOR ALL USING (true);
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access on notices" ON notices FOR SELECT USING (true);
+    CREATE POLICY "Allow public write access on notices" ON notices FOR ALL USING (true);
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
 -- ====================================================================
 -- 10. SAMPLE DATA
 -- ====================================================================
