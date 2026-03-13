@@ -47,22 +47,6 @@ function getDepartmentName(code) {
     return departments[code] || code;
 }
 
-// Open modal
-function openModal(title, content) {
-    const modalContainer = document.getElementById('modalContainer');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-    
-    modalTitle.textContent = title;
-    modalBody.innerHTML = content;
-    modalContainer.classList.add('active');
-}
-
-// Close modal
-function closeModal() {
-    const modalContainer = document.getElementById('modalContainer');
-    modalContainer.classList.remove('active');
-}
 
 // Validate email
 function validateEmail(email) {
