@@ -479,7 +479,7 @@ async function loadLibraryData() {
                 .from('book_issues')
                 .select(`
                     *,
-                    books (title, author, isbn)
+                    library_books (title, author, isbn)
                 `)
                 .eq('student_id', currentStudent.student_id)
                 .order('issue_date', { ascending: false });
@@ -515,7 +515,7 @@ function getDemoBookIssues() {
             issue_date: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
             due_date: dueDate1.toISOString(),
             status: 'issued',
-            books: { title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848' }
+            library_books: { title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848' }
         },
         {
             id: 2,
@@ -524,7 +524,7 @@ function getDemoBookIssues() {
             issue_date: new Date(today.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString(),
             due_date: dueDate2.toISOString(),
             status: 'overdue',
-            books: { title: 'Database System Concepts', author: 'Abraham Silberschatz', isbn: '978-0078022159' }
+            library_books: { title: 'Database System Concepts', author: 'Abraham Silberschatz', isbn: '978-0078022159' }
         },
         {
             id: 3,
@@ -534,7 +534,7 @@ function getDemoBookIssues() {
             due_date: new Date(today.getTime() - 16 * 24 * 60 * 60 * 1000).toISOString(),
             return_date: new Date(today.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(),
             status: 'returned',
-            books: { title: 'Computer Networks', author: 'Andrew S. Tanenbaum', isbn: '978-0132126953' }
+            library_books: { title: 'Computer Networks', author: 'Andrew S. Tanenbaum', isbn: '978-0132126953' }
         }
     ];
 }
@@ -564,7 +564,7 @@ function renderLibraryData(bookIssues) {
         } else {
             currentBooksContainer.innerHTML = currentBooks.map(book => `
                 <tr>
-                    <td>${book.books?.title || book.book_title || 'Unknown'}</td>
+                    <td>${book.library_books?.title || book.book_title || 'Unknown'}</td>
                     <td>${formatDate(book.issue_date)}</td>
                     <td>${formatDate(book.due_date)}</td>
                     <td><span class="status-badge status-${book.status}">${book.status}</span></td>
@@ -586,7 +586,7 @@ function renderLibraryData(bookIssues) {
         } else {
             historyContainer.innerHTML = returnedBooks.map(book => `
                 <tr>
-                    <td>${book.books?.title || book.book_title || 'Unknown'}</td>
+                    <td>${book.library_books?.title || book.book_title || 'Unknown'}</td>
                     <td>${formatDate(book.issue_date)}</td>
                     <td>${formatDate(book.return_date)}</td>
                     <td>${formatCurrency(book.fine || 0)}</td>
@@ -608,11 +608,9 @@ async function loadHostelData() {
                 .from('hostel_allocations')
                 .select(`
                     *,
-                    hostels (name, type, warden_name),
-                    rooms (room_number, floor, capacity)
+                    hostels (name, type, warden)
                 `)
                 .eq('student_id', currentStudent.student_id)
-                .eq('status', 'active')
                 .maybeSingle();
 
             if (!error && data) {
@@ -637,7 +635,7 @@ function getDemoHostelAllocation() {
     return {
         id: 1,
         hostel_name: 'Boys Hostel A',
-        room_number: '204',
+        room_no: '204',
         floor: '2nd Floor',
         bed_number: 'B2',
         hostel_type: 'AC',
@@ -646,8 +644,7 @@ function getDemoHostelAllocation() {
         allocation_date: '2022-07-20',
         mess_type: 'Vegetarian',
         monthly_fee: 8000,
-        hostels: { name: 'Boys Hostel A', type: 'AC', warden_name: 'Mr. Rajesh Kumar' },
-        rooms: { room_number: '204', floor: '2nd Floor', capacity: 2 }
+        hostels: { name: 'Boys Hostel A', type: 'AC', warden: 'Mr. Rajesh Kumar' }
     };
 }
 
@@ -673,12 +670,12 @@ function renderHostelData(allocation) {
             <div class="hostel-info-header">
                 <i class="fas fa-building"></i>
                 <h3>${allocation.hostel_name || allocation.hostels?.name}</h3>
-                <p>Room ${allocation.room_number || allocation.rooms?.room_number}</p>
+                <p>Room ${allocation.room_no || allocation.room_number}</p>
             </div>
             <div class="hostel-info-body">
                 <div class="hostel-detail-item">
                     <label>Floor</label>
-                    <span>${allocation.floor || allocation.rooms?.floor || 'N/A'}</span>
+                    <span>${allocation.floor || 'N/A'}</span>
                 </div>
                 <div class="hostel-detail-item">
                     <label>Bed Number</label>
@@ -690,7 +687,7 @@ function renderHostelData(allocation) {
                 </div>
                 <div class="hostel-detail-item">
                     <label>Warden</label>
-                    <span>${allocation.warden_name || allocation.hostels?.warden_name || 'N/A'}</span>
+                    <span>${allocation.warden_name || allocation.hostels?.warden || 'N/A'}</span>
                 </div>
                 <div class="hostel-detail-item">
                     <label>Warden Contact</label>
