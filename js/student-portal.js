@@ -987,21 +987,16 @@ async function loadOrganizationData() {
     }
     
     try {
-        // Load chain management (Chairman & Principal)
+        // Load chain management (all positions)
         const { data: chainData, error: chainError } = await window.CMS_CONFIG.supabase
             .from('chain_management')
-            .select('*');
+            .select('*')
+            .order('position');
         
         if (!chainError && chainData) {
-            chainData.forEach(person => {
-                if (person.position === 'Chairman') {
-                    document.getElementById('chairmanName').textContent = person.name || 'N/A';
-                    document.getElementById('chairmanEmail').textContent = person.email || '-';
-                } else if (person.position === 'Principal') {
-                    document.getElementById('principalName').textContent = person.name || 'N/A';
-                    document.getElementById('principalEmail').textContent = person.email || '-';
-                }
-            });
+            displayManagementHierarchy(chainData);
+        } else {
+            document.getElementById('managementHierarchy').innerHTML = '<div style="color: #95a5a6; padding: 20px;">No management data available</div>';
         }
         
         // Load departments
@@ -1051,6 +1046,80 @@ async function loadOrganizationData() {
     } catch (error) {
         console.error('Error loading organization data:', error);
     }
+}
+
+// Display management hierarchy with positions grouped horizontally
+function displayManagementHierarchy(chainData) {
+    const container = document.getElementById('managementHierarchy');
+    if (!container) return;
+    
+    if (!chainData || chainData.length === 0) {
+        container.innerHTML = '<div style="color: #95a5a6; padding: 20px;">No management data available</div>';
+        return;
+    }
+    
+    // Group by position
+    const positionGroups = {};
+    chainData.forEach(person => {
+        const pos = person.position || 'Other';
+        if (!positionGroups[pos]) {
+            positionGroups[pos] = [];
+        }
+        positionGroups[pos].push(person);
+    });
+    
+    // Define position order (top to bottom hierarchy)
+    const positionOrder = ['Chairman', 'Vice Chairman', 'Principal', 'Vice Principal', 'Dean', 'Registrar', 'Other'];
+    const sortedPositions = Object.keys(positionGroups).sort((a, b) => {
+        const indexA = positionOrder.indexOf(a);
+        const indexB = positionOrder.indexOf(b);
+        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+    });
+    
+    // Border colors for different positions
+    const borderColors = {
+        'Chairman': '#2c3e50',
+        'Vice Chairman': '#34495e',
+        'Principal': '#2980b9',
+        'Vice Principal': '#3498db',
+        'Dean': '#27ae60',
+        'Registrar': '#8e44ad'
+    };
+    
+    let html = '';
+    
+    sortedPositions.forEach((position, index) => {
+        const people = positionGroups[position];
+        const borderColor = borderColors[position] || '#7f8c8d';
+        
+        // Position level container
+        html += `<div style="margin-bottom: 15px;">`;
+        
+        // People in this position - displayed horizontally
+        html += `<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">`;
+        
+        people.forEach(person => {
+            html += `
+                <div style="background: white; border: 2px solid ${borderColor}; padding: 15px 25px; border-radius: 6px; min-width: 180px; max-width: 250px;">
+                    <div style="color: #7f8c8d; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">${position}</div>
+                    <div style="font-weight: 600; color: #2c3e50; font-size: 14px;">${person.name || 'N/A'}</div>
+                    <div style="font-size: 11px; color: #7f8c8d; margin-top: 3px;">${person.email || '-'}</div>
+                    ${person.contact ? `<div style="font-size: 11px; color: #7f8c8d;">${person.contact}</div>` : ''}
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+        
+        // Add connecting line if not last position
+        if (index < sortedPositions.length - 1) {
+            html += `<div style="width: 2px; height: 15px; background: #bdc3c7; margin: 8px auto;"></div>`;
+        }
+        
+        html += `</div>`;
+    });
+    
+    container.innerHTML = html;
 }
 
 function displayDepartmentCards(departments) {
