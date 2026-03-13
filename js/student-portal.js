@@ -492,10 +492,7 @@ async function loadLibraryData() {
         if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
             const { data, error } = await window.CMS_CONFIG.supabase
                 .from('book_issues')
-                .select(`
-                    *,
-                    library_books (title, author, isbn)
-                `)
+                .select('*')
                 .eq('student_id', currentStudent.student_id)
                 .order('issue_date', { ascending: false });
 
@@ -621,10 +618,7 @@ async function loadHostelData() {
         if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
             const { data, error } = await window.CMS_CONFIG.supabase
                 .from('hostel_allocations')
-                .select(`
-                    *,
-                    hostels (name, type, warden)
-                `)
+                .select('*')
                 .eq('student_id', currentStudent.student_id)
                 .maybeSingle();
 
