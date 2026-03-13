@@ -451,7 +451,7 @@
                     <div class="table-container">
                         <table>
                             <thead><tr><th>Student</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
-                            <tbody>
+                            <tbody id="scholarshipsTable">
                                 <tr><td>John Smith</td><td>Merit</td><td>₹25,000</td><td><span class="status-badge status-approved">Approved</span></td></tr>
                                 <tr><td>Sarah Johnson</td><td>Sports</td><td>₹15,000</td><td><span class="status-badge status-pending">Pending</span></td></tr>
                             </tbody>
@@ -471,7 +471,7 @@
                     <div class="table-container">
                         <table>
                             <thead><tr><th>Admission No</th><th>Name</th><th>Department</th><th>Year</th><th>Date</th><th>Status</th></tr></thead>
-                            <tbody>
+                            <tbody id="admissionsTable">
                                 <tr><td>ADM2025001</td><td>Rahul Kumar</td><td>CS</td><td>1</td><td>15-Jul-2025</td><td><span class="status-badge status-active">Active</span></td></tr>
                                 <tr><td>ADM2025002</td><td>Priya Singh</td><td>AIML</td><td>1</td><td>16-Jul-2025</td><td><span class="status-badge status-active">Active</span></td></tr>
                             </tbody>
@@ -508,7 +508,7 @@
                     <div class="table-container">
                         <table>
                             <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Subjects</th><th>Contact</th></tr></thead>
-                            <tbody>
+                            <tbody id="teachersTable">
                                 <tr><td>TCH001</td><td>Dr. Anil Kumar</td><td>CS</td><td>Professor & HOD</td><td>Data Structures, Algorithms</td><td>9876543220</td></tr>
                                 <tr><td>TCH002</td><td>Prof. Emily Wilson</td><td>CS</td><td>Associate Professor</td><td>Database Systems, SQL</td><td>9876543221</td></tr>
                                 <tr><td>TCH003</td><td>Dr. Priya Mehta</td><td>AIML</td><td>Professor & HOD</td><td>Machine Learning, AI</td><td>9876543222</td></tr>
@@ -531,7 +531,7 @@
                     <div class="table-container">
                         <table>
                             <thead><tr><th>Book ID</th><th>Title</th><th>Author</th><th>Subject</th><th>Total</th><th>Available</th></tr></thead>
-                            <tbody>
+                            <tbody id="booksTable">
                                 <tr><td>BK001</td><td>Introduction to Algorithms</td><td>Thomas H. Cormen</td><td>Computer Science</td><td>10</td><td>7</td></tr>
                                 <tr><td>BK002</td><td>Database System Concepts</td><td>Abraham Silberschatz</td><td>Computer Science</td><td>8</td><td>5</td></tr>
                                 <tr><td>BK003</td><td>Digital Electronics</td><td>Morris Mano</td><td>Electronics</td><td>12</td><td>9</td></tr>
@@ -585,7 +585,7 @@
                         <div class="table-container">
                             <table>
                                 <thead><tr><th>Student ID</th><th>Name</th><th>Department</th><th>Total Fee</th><th>Paid</th><th>Due</th><th>Status</th></tr></thead>
-                                <tbody>
+                                <tbody id="feeTable">
                                     <tr><td>STU001</td><td>John Smith</td><td>CS</td><td>₹75,000</td><td>₹75,000</td><td>₹0</td><td><span class="status-badge status-paid">Paid</span></td></tr>
                                     <tr><td>STU002</td><td>Sarah Johnson</td><td>ECE</td><td>₹75,000</td><td>₹50,000</td><td>₹25,000</td><td><span class="status-badge status-partial">Partial</span></td></tr>
                                     <tr><td>STU003</td><td>Mike Brown</td><td>AIML</td><td>₹85,000</td><td>₹0</td><td>₹85,000</td><td><span class="status-badge status-pending">Pending</span></td></tr>
@@ -716,6 +716,9 @@
             { email: 'admissions@college.edu', password: 'admission123', name: 'Mrs. Priya Iyer', role: 'admission_staff' }
         ];
         let currentUser = null;
+        let studentCounter = 3;
+        let admissionCounter = 2;
+        let teacherCounter = 3;
 
         // Init
         document.addEventListener('DOMContentLoaded', function() {
@@ -793,39 +796,135 @@
         }
 
         function saveStudent() {
-            showToast('Student added successfully', 'success');
+            const form = document.getElementById('studentForm');
+            const name = form.name.value.trim();
+            const email = form.email.value.trim();
+            const dept = form.department.value;
+            const year = form.year.value;
+            if (!name || !email) { showToast('Please fill all required fields', 'error'); return; }
+            studentCounter++;
+            const stuId = 'STU' + String(studentCounter).padStart(3, '0');
+            const tbody = document.getElementById('studentsTable');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${stuId}</td><td>${name}</td><td>${dept}</td><td>${year}</td><td>No</td><td><span class="status-badge status-pending">Pending</span></td><td class="actions"><button class="btn btn-icon btn-primary"><i class="fas fa-eye"></i></button></td>`;
+            tbody.insertBefore(row, tbody.firstChild);
+            row.style.background = '#e8f5e9';
+            setTimeout(() => row.style.background = '', 2000);
+            showToast('Student ' + name + ' (ID: ' + stuId + ') added successfully', 'success');
             closeModal('studentModal');
-            document.getElementById('studentForm').reset();
+            form.reset();
+            switchModule('students');
         }
 
         function saveScholarship() {
+            const form = document.getElementById('scholarshipForm');
+            const studentId = form.studentId.value.trim();
+            const type = form.type.value;
+            const amount = form.amount.value;
+            if (!studentId || !amount) { showToast('Please fill all required fields', 'error'); return; }
+            const tbody = document.getElementById('scholarshipsTable');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${studentId}</td><td>${type}</td><td>₹${Number(amount).toLocaleString('en-IN')}</td><td><span class="status-badge status-pending">Pending</span></td>`;
+            tbody.insertBefore(row, tbody.firstChild);
+            row.style.background = '#e8f5e9';
+            setTimeout(() => row.style.background = '', 2000);
             showToast('Scholarship added successfully', 'success');
             closeModal('scholarshipModal');
-            document.getElementById('scholarshipForm').reset();
+            form.reset();
         }
 
         function saveAdmission() {
-            showToast('Admission added successfully', 'success');
+            const form = document.getElementById('admissionForm');
+            const name = form.name.value.trim();
+            const email = form.email.value.trim();
+            const dept = form.department.value;
+            const year = form.year.value;
+            if (!name || !email) { showToast('Please fill all required fields', 'error'); return; }
+            admissionCounter++;
+            const admNo = 'ADM2025' + String(admissionCounter).padStart(3, '0');
+            const today = new Date();
+            const dateStr = today.getDate() + '-' + today.toLocaleString('en-US', {month:'short'}) + '-' + today.getFullYear();
+            const admTbody = document.getElementById('admissionsTable');
+            const admRow = document.createElement('tr');
+            admRow.innerHTML = `<td>${admNo}</td><td>${name}</td><td>${dept}</td><td>${year}</td><td>${dateStr}</td><td><span class="status-badge status-active">Active</span></td>`;
+            admTbody.insertBefore(admRow, admTbody.firstChild);
+            admRow.style.background = '#e8f5e9';
+            setTimeout(() => admRow.style.background = '', 2000);
+            // Also add to students table
+            studentCounter++;
+            const stuId = 'STU' + String(studentCounter).padStart(3, '0');
+            const stuTbody = document.getElementById('studentsTable');
+            const stuRow = document.createElement('tr');
+            stuRow.innerHTML = `<td>${stuId}</td><td>${name}</td><td>${dept}</td><td>${year}</td><td>No</td><td><span class="status-badge status-pending">Pending</span></td><td class="actions"><button class="btn btn-icon btn-primary"><i class="fas fa-eye"></i></button></td>`;
+            stuTbody.insertBefore(stuRow, stuTbody.firstChild);
+            showToast('Admission ' + admNo + ' - ' + name + ' registered successfully! Also added as Student ' + stuId, 'success');
             closeModal('admissionModal');
-            document.getElementById('admissionForm').reset();
+            form.reset();
         }
 
         function saveTeacher() {
-            showToast('Teacher added successfully', 'success');
+            const form = document.getElementById('teacherForm');
+            const name = form.name.value.trim();
+            const dept = form.department.value;
+            const designation = form.designation.value;
+            const subjects = form.subjects.value.trim();
+            const contact = form.contact.value.trim();
+            if (!name) { showToast('Please fill all required fields', 'error'); return; }
+            teacherCounter++;
+            const tchId = 'TCH' + String(teacherCounter).padStart(3, '0');
+            const tbody = document.getElementById('teachersTable');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${tchId}</td><td>${name}</td><td>${dept}</td><td>${designation}</td><td>${subjects || 'N/A'}</td><td>${contact || 'N/A'}</td>`;
+            tbody.insertBefore(row, tbody.firstChild);
+            row.style.background = '#e8f5e9';
+            setTimeout(() => row.style.background = '', 2000);
+            showToast('Teacher ' + name + ' (ID: ' + tchId + ') added successfully', 'success');
             closeModal('teacherModal');
-            document.getElementById('teacherForm').reset();
+            form.reset();
+            switchModule('teachers');
         }
 
         function saveBook() {
-            showToast('Book added successfully', 'success');
+            const form = document.getElementById('bookForm');
+            const bookId = form.bookId.value.trim();
+            const title = form.title.value.trim();
+            const author = form.author.value.trim();
+            const subject = form.subject.value.trim();
+            const total = form.total.value;
+            if (!bookId || !title || !author || !total) { showToast('Please fill all required fields', 'error'); return; }
+            const tbody = document.getElementById('booksTable');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${bookId}</td><td>${title}</td><td>${author}</td><td>${subject || 'General'}</td><td>${total}</td><td>${total}</td>`;
+            tbody.insertBefore(row, tbody.firstChild);
+            row.style.background = '#e8f5e9';
+            setTimeout(() => row.style.background = '', 2000);
+            showToast('Book "' + title + '" added successfully', 'success');
             closeModal('bookModal');
-            document.getElementById('bookForm').reset();
+            form.reset();
         }
 
         function saveFeeRecord() {
-            showToast('Fee record added successfully', 'success');
+            const form = document.getElementById('feeForm');
+            const studentId = form.studentId.value.trim();
+            const studentName = form.studentName.value.trim();
+            const dept = form.department.value;
+            const totalFee = Number(form.totalFee.value);
+            const paidAmount = Number(form.paidAmount.value);
+            if (!studentId || !studentName || !totalFee) { showToast('Please fill all required fields', 'error'); return; }
+            const due = totalFee - paidAmount;
+            let status, statusClass;
+            if (due <= 0) { status = 'Paid'; statusClass = 'status-paid'; }
+            else if (paidAmount > 0) { status = 'Partial'; statusClass = 'status-partial'; }
+            else { status = 'Pending'; statusClass = 'status-pending'; }
+            const tbody = document.getElementById('feeTable');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${studentId}</td><td>${studentName}</td><td>${dept}</td><td>₹${totalFee.toLocaleString('en-IN')}</td><td>₹${paidAmount.toLocaleString('en-IN')}</td><td>₹${due.toLocaleString('en-IN')}</td><td><span class="status-badge ${statusClass}">${status}</span></td>`;
+            tbody.insertBefore(row, tbody.firstChild);
+            row.style.background = '#e8f5e9';
+            setTimeout(() => row.style.background = '', 2000);
+            showToast('Fee record for ' + studentName + ' added successfully', 'success');
             closeModal('feeModal');
-            document.getElementById('feeForm').reset();
+            form.reset();
         }
     </script>
 </body>
