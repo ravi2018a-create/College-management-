@@ -5,6 +5,21 @@ let currentHostels = [];
 let currentAllocations = [];
 let currentHostelRequests = [];
 
+// Helper: get current admin user from localStorage (cms_user key)
+function getAdminUser() {
+    try {
+        return JSON.parse(localStorage.getItem('cms_user') || sessionStorage.getItem('user') || '{}');
+    } catch (e) {
+        return {};
+    }
+}
+
+// Helper: check if current user can manage hostels
+function canManageHostel() {
+    const user = getAdminUser();
+    return user.role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(user.role);
+}
+
 // Load hostel data
 async function loadHostelData() {
     try {
@@ -57,8 +72,7 @@ function displayHostelData(hostels) {
             const wardenName = hostel.warden_name || hostel.warden || 'Not Assigned';
             const wardenContact = hostel.warden_contact || hostel.contact || '';
             // Check if current user can edit/delete hostels
-            const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
-            const canEdit = currentUser.role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(currentUser.role);
+            const canEdit = canManageHostel();
             
             return `
             <tr>
@@ -82,7 +96,7 @@ function displayHostelData(hostels) {
             </tr>`;
         }).join('');
     } else {
-        const canEdit = JSON.parse(sessionStorage.getItem('user') || '{}').role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(JSON.parse(sessionStorage.getItem('user') || '{}').role);
+        const canEdit = canManageHostel();
         const colspan = canEdit ? '7' : '6';
         table.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center; color:var(--gray);">No hostels found</td></tr>`;
     }
@@ -702,7 +716,7 @@ async function loadHostelRequests() {
 // Filter and display hostel requests
 function filterHostelRequests() {
     const filterEl = document.getElementById('requestStatusFilter');
-    const filter = filterEl ? filterEl.value : 'pending';
+    const filter = filterEl ? filterEl.value : 'all';
     
     let filtered = currentHostelRequests;
     if (filter !== 'all') {
@@ -717,8 +731,7 @@ function displayHostelRequests(requests) {
     const tbody = document.getElementById('hostelRequestsTableBody');
     if (!tbody) return;
     
-    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
-    const canManage = currentUser.role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(currentUser.role);
+    const canManage = canManageHostel();
     
     if (requests.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);">No hostel requests found</td></tr>';
@@ -772,7 +785,7 @@ function displayHostelRequests(requests) {
 async function approveHostelRequest(requestId) {
     if (!confirm('Approve this hostel request? The student will be notified.')) return;
     
-    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    const currentUser = getAdminUser();
     
     try {
         const { error } = await window.CMS_CONFIG.supabase
@@ -800,7 +813,7 @@ async function rejectHostelRequest(requestId) {
     const reason = prompt('Reason for rejection (optional):');
     if (reason === null) return; // User clicked cancel
     
-    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    const currentUser = getAdminUser();
     
     try {
         const { error } = await window.CMS_CONFIG.supabase
