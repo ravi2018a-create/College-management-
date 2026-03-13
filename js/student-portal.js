@@ -1555,64 +1555,60 @@ async function loadAvailableHostels() {
     const container = document.getElementById('hostelList');
     if (!container) return;
     
-    // Demo hostels (in production, load from database)
-    const hostels = [
-        { 
-            name: 'Boys Hostel A', 
-            type: 'AC', 
-            available: 15, 
-            total: 120, 
-            fee: 10000,
-            facilities: 'AC Rooms, WiFi, Mess, Gym'
-        },
-        { 
-            name: 'Boys Hostel B', 
-            type: 'Non-AC', 
-            available: 8, 
-            total: 100, 
-            fee: 7000,
-            facilities: 'WiFi, Mess, Common Room'
-        },
-        { 
-            name: 'Girls Hostel A', 
-            type: 'AC', 
-            available: 12, 
-            total: 100, 
-            fee: 10000,
-            facilities: 'AC Rooms, WiFi, Mess, Gym'
-        },
-        { 
-            name: 'Girls Hostel B', 
-            type: 'Non-AC', 
-            available: 15, 
-            total: 80, 
-            fee: 7000,
-            facilities: 'WiFi, Mess, Reading Room'
+    // Load hostels from database
+    let hostels = [];
+    try {
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
+                .from('hostels')
+                .select('*')
+                .order('name');
+            
+            if (!error && data) {
+                hostels = data;
+            }
         }
-    ];
+    } catch (err) {
+        console.error('Error loading hostels:', err);
+    }
     
-    container.innerHTML = hostels.map(hostel => `
+    if (hostels.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#888; grid-column: 1/-1;">No hostels available at the moment.</p>';
+        return;
+    }
+    
+    container.innerHTML = hostels.map(hostel => {
+        const available = hostel.total_rooms - (hostel.occupied || 0);
+        const wardenName = hostel.warden_name || hostel.warden || '';
+        const fee = hostel.fee_per_month || 0;
+        const facilities = hostel.facilities || '';
+        const hostelType = hostel.type || 'Standard';
+        
+        return `
         <div style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; background: white;">
             <h4 style="color: #333; margin-bottom: 10px;">
                 <i class="fas fa-building"></i> ${hostel.name}
             </h4>
             <p style="font-size: 14px; color: #666; margin: 8px 0;">
-                <strong>Type:</strong> ${hostel.type}
+                <strong>Type:</strong> ${hostelType}
             </p>
             <p style="font-size: 14px; color: #666; margin: 8px 0;">
-                <strong>Available Rooms:</strong> ${hostel.available} / ${hostel.total}
+                <strong>Available Rooms:</strong> ${available} / ${hostel.total_rooms}
             </p>
-            <p style="font-size: 14px; color: #666; margin: 8px 0;">
-                <strong>Monthly Fee:</strong> ${formatCurrency(hostel.fee)}
-            </p>
-            <p style="font-size: 12px; color: #888; margin: 12px 0;">
-                <i class="fas fa-check-circle"></i> ${hostel.facilities}
-            </p>
-            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="requestHostel('${hostel.name}', '${hostel.type}')">
-                <i class="fas fa-paper-plane"></i> Request Hostel
+            ${fee ? `<p style="font-size: 14px; color: #666; margin: 8px 0;">
+                <strong>Monthly Fee:</strong> ${formatCurrency(fee)}
+            </p>` : ''}
+            ${wardenName ? `<p style="font-size: 12px; color: #888; margin: 8px 0;">
+                <i class="fas fa-user-tie"></i> Warden: ${wardenName}
+            </p>` : ''}
+            ${facilities ? `<p style="font-size: 12px; color: #888; margin: 12px 0;">
+                <i class="fas fa-check-circle"></i> ${facilities}
+            </p>` : ''}
+            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" ${available <= 0 ? 'disabled style="width:100%;margin-top:15px;opacity:0.5;"' : ''} onclick="requestHostel('${hostel.name}', '${hostelType}')">
+                <i class="fas fa-paper-plane"></i> ${available > 0 ? 'Request Hostel' : 'No Rooms Available'}
             </button>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 async function requestHostel(hostelName, hostelType) {
