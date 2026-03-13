@@ -386,35 +386,36 @@ function renderFeeData(records) {
 
     const totalDue = totalFee - totalPaid;
 
-    // Update fee overview cards
-    document.getElementById('totalFee').textContent = formatCurrency(totalFee);
-    document.getElementById('paidFee').textContent = formatCurrency(totalPaid);
-    document.getElementById('dueFee').textContent = formatCurrency(totalDue);
+    // Update fee overview cards (use correct element IDs from HTML)
+    const totalEl = document.getElementById('totalFeesAmount');
+    const paidEl = document.getElementById('paidFeesAmount');
+    const dueEl = document.getElementById('dueFeesAmount');
+    if (totalEl) totalEl.textContent = formatCurrency(totalFee);
+    if (paidEl) paidEl.textContent = formatCurrency(totalPaid);
+    if (dueEl) dueEl.textContent = formatCurrency(totalDue);
 
     // Update status message
     const statusMessage = document.getElementById('feeStatusMessage');
-    if (totalDue <= 0) {
-        statusMessage.className = 'fee-status-message success';
-        statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> All fees are paid. Your account is up to date.';
-    } else if (totalDue < totalFee * 0.5) {
-        statusMessage.className = 'fee-status-message warning';
-        statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle"></i> You have pending fees. Please clear your dues before the deadline.';
-    } else {
-        statusMessage.className = 'fee-status-message danger';
-        statusMessage.innerHTML = '<i class="fas fa-times-circle"></i> Significant fees pending. Please contact accounts department.';
+    if (statusMessage) {
+        if (totalDue <= 0) {
+            statusMessage.className = 'fee-status-message success';
+            statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> All fees are paid. Your account is up to date.';
+        } else if (totalDue < totalFee * 0.5) {
+            statusMessage.className = 'fee-status-message warning';
+            statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle"></i> You have pending fees. Please clear your dues before the deadline.';
+        } else {
+            statusMessage.className = 'fee-status-message danger';
+            statusMessage.innerHTML = '<i class="fas fa-times-circle"></i> Significant fees pending. Please contact accounts department.';
+        }
     }
 
-    // Render fee history table
-    const tbody = document.getElementById('feeHistoryTable');
+    // Render fee details table
+    const tbody = document.getElementById('feeDetailsTable');
     if (tbody) {
         tbody.innerHTML = records.map(record => `
             <tr>
-                <td>${record.fee_type}</td>
-                <td>${record.semester || 'N/A'}</td>
+                <td>${record.fee_type || 'Tuition Fee'}</td>
                 <td>${formatCurrency(record.amount)}</td>
-                <td>${formatCurrency(record.paid_amount)}</td>
-                <td>${formatCurrency(record.amount - record.paid_amount)}</td>
-                <td>${formatDate(record.due_date)}</td>
                 <td><span class="status-badge status-${record.status}">${record.status}</span></td>
             </tr>
         `).join('');
@@ -498,25 +499,27 @@ function renderLibraryData(bookIssues) {
     const currentBooks = bookIssues.filter(b => b.status === 'issued' || b.status === 'overdue');
     const overdueBooks = bookIssues.filter(b => b.status === 'overdue');
 
-    // Update stats
-    document.getElementById('currentBooksCount').textContent = currentBooks.length;
-    document.getElementById('overdueBooksCount').textContent = overdueBooks.length;
+    // Update stats (use correct element IDs from HTML)
+    const currentEl = document.getElementById('currentlyIssued');
+    const overdueEl = document.getElementById('overdueBooks');
+    const totalEl = document.getElementById('totalBorrowed');
+    if (currentEl) currentEl.textContent = currentBooks.length;
+    if (overdueEl) overdueEl.textContent = overdueBooks.length;
+    if (totalEl) totalEl.textContent = bookIssues.length;
 
     // Render current books
-    const currentBooksContainer = document.getElementById('currentBooks');
+    const currentBooksContainer = document.getElementById('issuedBooksTable');
     if (currentBooksContainer) {
         if (currentBooks.length === 0) {
             currentBooksContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-book"></i>
-                    <p>No books currently issued</p>
-                </div>
+                <tr>
+                    <td colspan="4" class="text-center">No books currently issued</td>
+                </tr>
             `;
         } else {
             currentBooksContainer.innerHTML = currentBooks.map(book => `
                 <tr>
-                    <td>${book.books?.title || book.book_title}</td>
-                    <td>${book.books?.author || book.book_author}</td>
+                    <td>${book.books?.title || book.book_title || 'Unknown'}</td>
                     <td>${formatDate(book.issue_date)}</td>
                     <td>${formatDate(book.due_date)}</td>
                     <td><span class="status-badge status-${book.status}">${book.status}</span></td>
@@ -526,23 +529,22 @@ function renderLibraryData(bookIssues) {
     }
 
     // Render book history
-    const historyContainer = document.getElementById('bookHistory');
+    const historyContainer = document.getElementById('borrowHistoryTable');
     if (historyContainer) {
         const returnedBooks = bookIssues.filter(b => b.status === 'returned');
         if (returnedBooks.length === 0) {
             historyContainer.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center">No book return history</td>
+                    <td colspan="4" class="text-center">No borrowing history</td>
                 </tr>
             `;
         } else {
             historyContainer.innerHTML = returnedBooks.map(book => `
                 <tr>
-                    <td>${book.books?.title || book.book_title}</td>
-                    <td>${book.books?.author || book.book_author}</td>
+                    <td>${book.books?.title || book.book_title || 'Unknown'}</td>
                     <td>${formatDate(book.issue_date)}</td>
                     <td>${formatDate(book.return_date)}</td>
-                    <td><span class="status-badge status-returned">Returned</span></td>
+                    <td>${formatCurrency(book.fine || 0)}</td>
                 </tr>
             `).join('');
         }
@@ -608,6 +610,8 @@ function getDemoHostelAllocation() {
 function renderHostelData(allocation) {
     const container = document.getElementById('hostelDetails');
     
+    if (!container) return;
+
     if (!allocation || !allocation.hostel_name) {
         container.innerHTML = `
             <div class="no-hostel-message">
@@ -802,8 +806,8 @@ async function loadNoticesData() {
     try {
         let notices = [];
         
-        if (typeof supabase !== 'undefined') {
-            const { data, error } = await supabase
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('notices')
                 .select('*')
                 .eq('is_active', true)

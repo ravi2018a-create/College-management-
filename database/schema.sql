@@ -273,6 +273,23 @@ END;
 $$ language 'plpgsql';
 
 -- Apply trigger to all tables with updated_at column
+-- Drop existing triggers first to avoid conflicts
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+DROP TRIGGER IF EXISTS update_chain_management_updated_at ON chain_management;
+DROP TRIGGER IF EXISTS update_departments_updated_at ON departments;
+DROP TRIGGER IF EXISTS update_students_updated_at ON students;
+DROP TRIGGER IF EXISTS update_teachers_updated_at ON teachers;
+DROP TRIGGER IF EXISTS update_admissions_updated_at ON admissions;
+DROP TRIGGER IF EXISTS update_registrar_staff_updated_at ON registrar_staff;
+DROP TRIGGER IF EXISTS update_scholarships_updated_at ON scholarships;
+DROP TRIGGER IF EXISTS update_benefits_updated_at ON benefits;
+DROP TRIGGER IF EXISTS update_library_books_updated_at ON library_books;
+DROP TRIGGER IF EXISTS update_book_issues_updated_at ON book_issues;
+DROP TRIGGER IF EXISTS update_hostels_updated_at ON hostels;
+DROP TRIGGER IF EXISTS update_hostel_allocations_updated_at ON hostel_allocations;
+DROP TRIGGER IF EXISTS update_fee_records_updated_at ON fee_records;
+DROP TRIGGER IF EXISTS update_notices_updated_at ON notices;
+
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_chain_management_updated_at BEFORE UPDATE ON chain_management FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON departments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
