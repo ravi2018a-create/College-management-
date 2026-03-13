@@ -24,13 +24,17 @@ function setupEventListeners() {
 
     // Navigation items
     document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
             const module = this.dataset.module;
             if (module) {
                 switchModule(module);
                 // Close sidebar on mobile after selecting
-                if (window.innerWidth <= 768) {
-                    document.querySelector('.sidebar')?.classList.remove('active');
+                if (window.innerWidth <= 992) {
+                    const sidebar = document.querySelector('.sidebar');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    if (sidebar) sidebar.classList.remove('active');
+                    if (overlay) overlay.classList.remove('active');
                 }
             }
         });
