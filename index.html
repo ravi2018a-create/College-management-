@@ -1425,19 +1425,21 @@
             const titles = { 'dashboard': 'Dashboard', 'chain': 'Chain Management', 'departments': 'Departments', 'registrar': 'Registrar', 'admission': 'Admission Cell', 'students': 'Students', 'teachers': 'Teachers', 'library': 'Library', 'hostel': 'Hostel', 'accounts': 'Accounts', 'notices': 'Notice Board' };
             document.getElementById('moduleTitle').textContent = titles[moduleName] || 'Dashboard';
             
-            // Load chain data when switching to chain module
+            // Load module data when switching
             if (moduleName === 'chain') {
                 loadChainData();
-            }
-            
-            // Load departments when switching to departments module
-            if (moduleName === 'departments') {
+            } else if (moduleName === 'departments') {
                 loadDepartments();
-            }
-            
-            // Load notices when switching to notices module
-            if (moduleName === 'notices') {
+            } else if (moduleName === 'hostel') {
+                loadHostelData();
+            } else if (moduleName === 'notices') {
                 loadNotices();
+            } else if (moduleName === 'students') {
+                loadStudents();
+            } else if (moduleName === 'teachers') {
+                loadTeachers();
+            } else if (moduleName === 'library') {
+                loadBooks();
             }
         }
 
