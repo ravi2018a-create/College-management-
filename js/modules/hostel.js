@@ -436,27 +436,38 @@ async function saveHostel() {
     try {
         let result = await persistHostel(hostelData);
 
-        // If any column is missing, retry with only core columns
-        if (result.error && result.error.code === 'PGRST204') {
-            console.warn('Schema mismatch, retrying with core columns only:', result.error.message);
+        // If any column is missing, retry with progressively fewer columns
+        if (result.error && (result.error.code === 'PGRST204' || result.error.status === 400)) {
+            console.warn('Schema mismatch, retrying with fewer columns:', result.error.message);
+            
             const corePayload = {
                 name: hostelData.name,
                 type: hostelData.type,
                 total_rooms: hostelData.total_rooms,
                 occupied: hostelData.occupied ?? 0
             };
-            // Try warden_name/warden_contact first, fall back to warden/contact
-            const tryWithWardenName = { ...corePayload, warden_name: wardenName, warden_contact: wardenContact };
-            result = await persistHostel(tryWithWardenName);
-            if (result.error && result.error.code === 'PGRST204') {
-                const tryWithWarden = { ...corePayload, warden: wardenName, contact: wardenContact };
-                result = await persistHostel(tryWithWarden);
+
+            // Try 1: core + warden/contact (schema.sql column names)
+            result = await persistHostel({ ...corePayload, warden: wardenName, contact: wardenContact });
+
+            // Try 2: core + warden_name/warden_contact (add_hostels.sql column names)
+            if (result.error && (result.error.code === 'PGRST204' || result.error.status === 400)) {
+                result = await persistHostel({ ...corePayload, warden_name: wardenName, warden_contact: wardenContact });
+            }
+
+            // Try 3: core columns only
+            if (result.error && (result.error.code === 'PGRST204' || result.error.status === 400)) {
+                result = await persistHostel(corePayload);
             }
         }
 
         if (result.error) {
             console.error('Error saving hostel:', result.error);
-            showToast('Error saving hostel: ' + result.error.message, 'error');
+            if (result.error.code === '42501' || result.error.message?.includes('policy') || result.status === 401) {
+                showToast('Permission denied. Run this in Supabase SQL Editor: ALTER TABLE hostels DISABLE ROW LEVEL SECURITY;', 'error');
+            } else {
+                showToast('Error saving hostel: ' + result.error.message, 'error');
+            }
             return;
         }
 
