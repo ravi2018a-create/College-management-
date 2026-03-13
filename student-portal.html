@@ -54,6 +54,10 @@
                     <i class="fas fa-user"></i>
                     <span>My Profile</span>
                 </a>
+                <a href="#" class="nav-item" data-module="organization">
+                    <i class="fas fa-sitemap"></i>
+                    <span>Organization</span>
+                </a>
                 <a href="#" class="nav-item" data-module="fees">
                     <i class="fas fa-money-bill-wave"></i>
                     <span>Fee Status</span>
@@ -261,6 +265,96 @@
                     </div>
                 </div>
 
+                <!-- Organization Module -->
+                <div id="organizationModule" class="module">
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div class="card-header">
+                            <h3>College Organizational Hierarchy</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="org-chart" style="padding: 20px; overflow-x: auto;">
+                        <!-- Level 1: Chairman -->
+                        <div class="org-level">
+                            <div class="org-card chairman">
+                                <div class="org-icon"><i class="fas fa-crown"></i></div>
+                                <h3>Dr. Robert Smith</h3>
+                                <p>Chairman</p>
+                                <p style="font-size:12px;">chairman@college.edu</p>
+                            </div>
+                        </div>
+                        <div style="width:2px; height:30px; background:#ddd; margin: 0 auto;"></div>
+                        
+                        <!-- Level 2: Principal -->
+                        <div class="org-level">
+                            <div class="org-card principal">
+                                <div class="org-icon"><i class="fas fa-user-tie"></i></div>
+                                <h3>Dr. Sarah Johnson</h3>
+                                <p>Principal</p>
+                                <p style="font-size:12px;">principal@college.edu</p>
+                            </div>
+                        </div>
+                        <div style="width:2px; height:30px; background:#ddd; margin: 0 auto;"></div>
+                        
+                        <!-- Level 3: Departments & HODs -->
+                        <div class="card" style="margin: 20px auto; max-width: 1200px;">
+                            <div class="card-header"><h3><i class="fas fa-building"></i> Departments & HODs</h3></div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; padding: 20px;">
+                                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                    <h4>Computer Science</h4>
+                                    <p style="font-size:14px; margin:10px 0;">HOD: Dr. Anil Kumar</p>
+                                    <p style="font-size:12px;" id="studentCsTeacherCount">0 Teachers</p>
+                                    <p style="font-size:12px;" id="studentCsStudentCount">0 Students</p>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                    <h4>AI & ML</h4>
+                                    <p style="font-size:14px; margin:10px 0;">HOD: Dr. Priya Sharma</p>
+                                    <p style="font-size:12px;" id="studentAimlTeacherCount">0 Teachers</p>
+                                    <p style="font-size:12px;" id="studentAimlStudentCount">0 Students</p>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                    <h4>Electronics (ECE)</h4>
+                                    <p style="font-size:14px; margin:10px 0;">HOD: Dr. Rajesh Gupta</p>
+                                    <p style="font-size:12px;" id="studentEceTeacherCount">0 Teachers</p>
+                                    <p style="font-size:12px;" id="studentEceStudentCount">0 Students</p>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                    <h4>Electrical (EE)</h4>
+                                    <p style="font-size:14px; margin:10px 0;">HOD: Dr. Vikram Singh</p>
+                                    <p style="font-size:12px;" id="studentEeTeacherCount">0 Teachers</p>
+                                    <p style="font-size:12px;" id="studentEeStudentCount">0 Students</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Level 4: Teachers Directory -->
+                        <div class="card" style="margin: 20px auto; max-width: 1200px;">
+                            <div class="card-header"><h3><i class="fas fa-chalkboard-teacher"></i> Teachers Directory</h3></div>
+                            <div class="table-container">
+                                <table>
+                                    <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Contact</th></tr></thead>
+                                    <tbody id="studentOrgTeachersTable">
+                                        <tr><td colspan="5" style="text-align:center; color:var(--gray);">Loading teachers...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Level 5: Students Directory -->
+                        <div class="card" style="margin: 20px auto; max-width: 1200px;">
+                            <div class="card-header"><h3><i class="fas fa-user-graduate"></i> Students Directory</h3></div>
+                            <div class="table-container">
+                                <table>
+                                    <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Year</th><th>Email</th></tr></thead>
+                                    <tbody id="studentOrgStudentsTable">
+                                        <tr><td colspan="5" style="text-align:center; color:var(--gray);">Loading students...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Library Module -->
                 <div id="libraryModule" class="module">
                     <div class="library-stats">
@@ -289,7 +383,38 @@
 
                     <div class="card">
                         <div class="card-header">
-                            <h3>Currently Issued Books</h3>
+                            <h3><i class="fas fa-book"></i> Library Book Catalog</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="toolbar" style="margin-bottom: 15px;">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="bookSearchInput" placeholder="Search books by title, author, subject..." onkeyup="filterBooks()">
+                                </div>
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Book ID</th>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Subject</th>
+                                        <th>Available</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookCatalogTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading book catalog...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card mt-20">
+                        <div class="card-header">
+                            <h3>My Issued Books</h3>
                         </div>
                         <div class="card-body">
                             <table class="table">
@@ -336,8 +461,49 @@
 
                 <!-- Hostel Module -->
                 <div id="hostelModule" class="module">
-                    <div id="hostelAllocationInfo">
-                        <!-- Hostel info will be loaded here -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bed"></i> My Hostel Status</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="hostelAllocationInfo">
+                                <p class="text-center">Loading hostel information...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-20" id="hostelRequestSection">
+                        <div class="card-header">
+                            <h3><i class="fas fa-home"></i> Available Hostels</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;" id="hostelList">
+                                <p class="text-center">Loading available hostels...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-20">
+                        <div class="card-header">
+                            <h3><i class="fas fa-file-alt"></i> My Hostel Requests</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Request Date</th>
+                                        <th>Hostel</th>
+                                        <th>Room Type</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hostelRequestsTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">No hostel requests yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 

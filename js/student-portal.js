@@ -264,6 +264,7 @@ function switchModule(moduleName) {
     // Update header title
     const titles = {
         'profile': 'My Profile',
+        'organization': 'College Organization',
         'fees': 'Fee Status',
         'library': 'Library',
         'hostel': 'Hostel',
@@ -275,6 +276,15 @@ function switchModule(moduleName) {
     const pageTitle = document.getElementById('pageTitle');
     if (pageTitle) {
         pageTitle.textContent = titles[moduleName] || 'Dashboard';
+    }
+    
+    // Load module-specific data when switching
+    if (moduleName === 'organization') {
+        loadOrganizationData();
+    } else if (moduleName === 'library') {
+        loadLibraryCatalog();
+    } else if (moduleName === 'hostel') {
+        loadHostelOptions();
     }
 
     // Scroll to top of content area
@@ -288,9 +298,12 @@ function switchModule(moduleName) {
 // Load All Module Data
 function loadAllModuleData() {
     loadProfileData();
+    loadOrganizationData();
     loadFeeData();
     loadLibraryData();
+    loadLibraryCatalog();
     loadHostelData();
+    loadHostelOptions();
     loadScholarshipData();
     loadNoticesData();
     loadStaffData();
@@ -1290,6 +1303,496 @@ function getDemoDepartments() {
         { code: 'ECE', name: 'Electronics & Communication', hod: 'Dr. Rajesh Sharma' },
         { code: 'EE', name: 'Electrical Engineering', hod: 'Dr. Sunita Verma' }
     ];
+}
+
+// ===== ORGANIZATION MODULE =====
+let allOrgTeachers = [];
+let allOrgStudents = [];
+
+async function loadOrganizationData() {
+    if (!window.CMS_CONFIG || !window.CMS_CONFIG.supabase) {
+        console.warn('Supabase not available');
+        return;
+    }
+    
+    try {
+        // Load teachers
+        const { data: teachers, error: teacherError } = await window.CMS_CONFIG.supabase
+            .from('teachers')
+            .select('*')
+            .order('department', { ascending: true });
+        
+        if (!teacherError && teachers) {
+            allOrgTeachers = teachers;
+            displayOrgTeachers(teachers);
+            updateOrgDepartmentCounts(teachers, 'teacher');
+        } else {
+            document.getElementById('studentOrgTeachersTable').innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No teachers found</td></tr>';
+        }
+        
+        // Load students
+        const { data: students, error: studentError } = await window.CMS_CONFIG.supabase
+            .from('students')
+            .select('*')
+            .order('department', { ascending: true });
+        
+        if (!studentError && students) {
+            allOrgStudents = students;
+            displayOrgStudents(students);
+            updateOrgDepartmentCounts(students, 'student');
+        } else {
+            document.getElementById('studentOrgStudentsTable').innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No students found</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading organization data:', error);
+    }
+}
+
+function displayOrgTeachers(teachers) {
+    const tbody = document.getElementById('studentOrgTeachersTable');
+    if (!tbody) return;
+    
+    if (!teachers || teachers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No teachers enrolled yet</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = teachers.map(t => `
+        <tr>
+            <td>${t.teacher_id}</td>
+            <td><strong>${t.name}</strong></td>
+            <td><span style="padding: 4px 12px; background: #e3f2fd; color: #1976d2; border-radius: 12px; font-size: 12px; font-weight: 500;">${t.department}</span></td>
+            <td>${t.designation}</td>
+            <td>${t.contact || 'N/A'}</td>
+        </tr>
+    `).join('');
+}
+
+function displayOrgStudents(students) {
+    const tbody = document.getElementById('studentOrgStudentsTable');
+    if (!tbody) return;
+    
+    if (!students || students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No students enrolled yet</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = students.map(s => `
+        <tr>
+            <td>${s.student_id}</td>
+            <td><strong>${s.name}</strong></td>
+            <td><span style="padding: 4px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 12px; font-size: 12px; font-weight: 500;">${s.department}</span></td>
+            <td>Year ${s.year}</td>
+            <td>${s.email}</td>
+        </tr>
+    `).join('');
+}
+
+function updateOrgDepartmentCounts(data, type) {
+    const deptMap = {
+        'CS': { teacher: 'studentCsTeacherCount', student: 'studentCsStudentCount' },
+        'AIML': { teacher: 'studentAimlTeacherCount', student: 'studentAimlStudentCount' },
+        'ECE': { teacher: 'studentEceTeacherCount', student: 'studentEceStudentCount' },
+        'EE': { teacher: 'studentEeTeacherCount', student: 'studentEeStudentCount' }
+    };
+    
+    // Count by department
+    const counts = { CS: 0, AIML: 0, ECE: 0, EE: 0 };
+    data.forEach(item => {
+        if (counts.hasOwnProperty(item.department)) {
+            counts[item.department]++;
+        }
+    });
+    
+    // Update UI
+    Object.keys(deptMap).forEach(dept => {
+        const elementId = deptMap[dept][type];
+        const element = document.getElementById(elementId);
+        if (element) {
+            if (type === 'teacher') {
+                element.textContent = `${counts[dept]} Teacher${counts[dept] !== 1 ? 's' : ''}`;
+            } else {
+                element.textContent = `${counts[dept]} Student${counts[dept] !== 1 ? 's' : ''}`;
+            }
+        }
+    });
+}
+
+// ===== LIBRARY CATALOG MODULE =====
+let allLibraryBooks = [];
+
+async function loadLibraryCatalog() {
+    if (!window.CMS_CONFIG || !window.CMS_CONFIG.supabase) {
+        console.warn('Supabase not available');
+        return;
+    }
+    
+    try {
+        const { data: books, error } = await window.CMS_CONFIG.supabase
+            .from('library_books')
+            .select('*')
+            .order('title', { ascending: true });
+        
+        if (error) {
+            console.error('Error loading books:', error);
+            document.getElementById('bookCatalogTable').innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">Error loading books</td></tr>';
+            return;
+        }
+        
+        if (!books || books.length === 0) {
+            document.getElementById('bookCatalogTable').innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No books available in library</td></tr>';
+            return;
+        }
+        
+        allLibraryBooks = books;
+        displayBookCatalog(books);
+    } catch (error) {
+        console.error('Error loading library catalog:', error);
+    }
+}
+
+function displayBookCatalog(books) {
+    const tbody = document.getElementById('bookCatalogTable');
+    if (!tbody) return;
+    
+    tbody.innerHTML = books.map(book => {
+        const available = book.available_copies || 0;
+        const isAvailable = available > 0;
+        
+        return `
+            <tr>
+                <td>${book.book_id}</td>
+                <td><strong>${book.title}</strong></td>
+                <td>${book.author}</td>
+                <td>${book.subject || 'General'}</td>
+                <td>
+                    <span class="status-badge ${isAvailable ? 'status-active' : 'status-inactive'}">
+                        ${available} / ${book.total_copies}
+                    </span>
+                </td>
+                <td>
+                    ${isAvailable 
+                        ? `<button class="btn btn-primary btn-sm" onclick="requestBook('${book.book_id}', '${book.title.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-book-reader"></i> Book Now
+                           </button>`
+                        : `<span class="status-badge status-unavailable">Unavailable</span>`
+                    }
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterBooks() {
+    const searchInput = document.getElementById('bookSearchInput');
+    if (!searchInput || !allLibraryBooks) return;
+    
+    const searchTerm = searchInput.value.toLowerCase();
+    
+    if (!searchTerm) {
+        displayBookCatalog(allLibraryBooks);
+        return;
+    }
+    
+    const filtered = allLibraryBooks.filter(book => 
+        (book.title || '').toLowerCase().includes(searchTerm) ||
+        (book.author || '').toLowerCase().includes(searchTerm) ||
+        (book.subject || '').toLowerCase().includes(searchTerm) ||
+        (book.book_id || '').toLowerCase().includes(searchTerm)
+    );
+    
+    displayBookCatalog(filtered);
+}
+
+async function requestBook(bookId, bookTitle) {
+    if (!currentStudent) {
+        showToast('Please login first', 'error');
+        return;
+    }
+    
+    if (!window.CMS_CONFIG || !window.CMS_CONFIG.supabase) {
+        showToast('Database not available', 'error');
+        return;
+    }
+    
+    if (!confirm(`Do you want to book "${bookTitle}"?`)) {
+        return;
+    }
+    
+    try {
+        // Check if book is still available
+        const { data: bookData, error: bookError } = await window.CMS_CONFIG.supabase
+            .from('library_books')
+            .select('available_copies')
+            .eq('book_id', bookId)
+            .single();
+        
+        if (bookError || !bookData || bookData.available_copies <= 0) {
+            showToast('Book is no longer available', 'error');
+            await loadLibraryCatalog();
+            return;
+        }
+        
+        // Create issue record
+        const issueDate = new Date();
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 14); // 14 days loan period
+        
+        const { error: issueError } = await window.CMS_CONFIG.supabase
+            .from('book_issues')
+            .insert({
+                student_id: currentStudent.student_id,
+                book_id: bookId,
+                issue_date: issueDate.toISOString(),
+                due_date: dueDate.toISOString(),
+                status: 'issued'
+            });
+        
+        if (issueError) {
+            console.error('Error issuing book:', issueError);
+            showToast('Error booking: ' + issueError.message, 'error');
+            return;
+        }
+        
+        // Update available copies
+        const { error: updateError } = await window.CMS_CONFIG.supabase
+            .from('library_books')
+            .update({ available_copies: bookData.available_copies - 1 })
+            .eq('book_id', bookId);
+        
+        if (updateError) {
+            console.error('Error updating book count:', updateError);
+        }
+        
+        showToast(`✅ Book "${bookTitle}" issued successfully! Due date: ${formatDate(dueDate.toISOString())}`, 'success');
+        
+        // Reload catalog and issued books
+        await loadLibraryCatalog();
+        await loadLibraryData();
+    } catch (error) {
+        console.error('Error requesting book:', error);
+        showToast('Error booking. Please try again.', 'error');
+    }
+}
+
+// ===== HOSTEL REQUEST MODULE =====
+async function loadHostelOptions() {
+    if (!currentStudent) return;
+    
+    try {
+        // Check if student already has hostel allocation
+        let hasAllocation = false;
+        
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data: allocationData } = await window.CMS_CONFIG.supabase
+                .from('hostel_allocations')
+                .select('*')
+                .eq('student_id', currentStudent.student_id)
+                .maybeSingle();
+            
+            if (allocationData) {
+                hasAllocation = true;
+                renderHostelAllocation(allocationData);
+            }
+        }
+        
+        if (!hasAllocation) {
+            renderNoHostelAllocation();
+        }
+        
+        // Load available hostels
+        await loadAvailableHostels();
+        
+        // Load hostel requests
+        await loadHostelRequests();
+    } catch (error) {
+        console.error('Error loading hostel options:', error);
+    }
+}
+
+function renderHostelAllocation(allocation) {
+    const container = document.getElementById('hostelAllocationInfo');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 25px; border-radius: 12px; text-align: center;">
+            <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 15px;"></i>
+            <h3>Hostel Allocated</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; text-align: left;">
+                <div>
+                    <p style="font-size: 12px; opacity: 0.8;">Hostel Name</p>
+                    <p style="font-size: 16px; font-weight: 600;">${allocation.hostel_name || 'N/A'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 12px; opacity: 0.8;">Room Number</p>
+                    <p style="font-size: 16px; font-weight: 600;">${allocation.room_no || allocation.room_number || 'N/A'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 12px; opacity: 0.8;">Floor</p>
+                    <p style="font-size: 16px; font-weight: 600;">${allocation.floor || 'N/A'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 12px; opacity: 0.8;">Monthly Fee</p>
+                    <p style="font-size: 16px; font-weight: 600;">${formatCurrency(allocation.monthly_fee || 8000)}</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderNoHostelAllocation() {
+    const container = document.getElementById('hostelAllocationInfo');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div style="text-align: center; padding: 30px; background: #f5f5f5; border-radius: 10px;">
+            <i class="fas fa-home" style="font-size: 48px; color: #999; margin-bottom: 15px;"></i>
+            <h4 style="color: #666;">No Hostel Allocated</h4>
+            <p style="color: #888; font-size: 14px;">You can request hostel accommodation below</p>
+        </div>
+    `;
+}
+
+async function loadAvailableHostels() {
+    const container = document.getElementById('hostelList');
+    if (!container) return;
+    
+    // Demo hostels (in production, load from database)
+    const hostels = [
+        { 
+            name: 'Boys Hostel A', 
+            type: 'AC', 
+            available: 15, 
+            total: 120, 
+            fee: 10000,
+            facilities: 'AC Rooms, WiFi, Mess, Gym'
+        },
+        { 
+            name: 'Boys Hostel B', 
+            type: 'Non-AC', 
+            available: 8, 
+            total: 100, 
+            fee: 7000,
+            facilities: 'WiFi, Mess, Common Room'
+        },
+        { 
+            name: 'Girls Hostel A', 
+            type: 'AC', 
+            available: 12, 
+            total: 100, 
+            fee: 10000,
+            facilities: 'AC Rooms, WiFi, Mess, Gym'
+        },
+        { 
+            name: 'Girls Hostel B', 
+            type: 'Non-AC', 
+            available: 15, 
+            total: 80, 
+            fee: 7000,
+            facilities: 'WiFi, Mess, Reading Room'
+        }
+    ];
+    
+    container.innerHTML = hostels.map(hostel => `
+        <div style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; background: white;">
+            <h4 style="color: #333; margin-bottom: 10px;">
+                <i class="fas fa-building"></i> ${hostel.name}
+            </h4>
+            <p style="font-size: 14px; color: #666; margin: 8px 0;">
+                <strong>Type:</strong> ${hostel.type}
+            </p>
+            <p style="font-size: 14px; color: #666; margin: 8px 0;">
+                <strong>Available Rooms:</strong> ${hostel.available} / ${hostel.total}
+            </p>
+            <p style="font-size: 14px; color: #666; margin: 8px 0;">
+                <strong>Monthly Fee:</strong> ${formatCurrency(hostel.fee)}
+            </p>
+            <p style="font-size: 12px; color: #888; margin: 12px 0;">
+                <i class="fas fa-check-circle"></i> ${hostel.facilities}
+            </p>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="requestHostel('${hostel.name}', '${hostel.type}')">
+                <i class="fas fa-paper-plane"></i> Request Hostel
+            </button>
+        </div>
+    `).join('');
+}
+
+async function requestHostel(hostelName, hostelType) {
+    if (!currentStudent) {
+        showToast('Please login first', 'error');
+        return;
+    }
+    
+    if (!confirm(`Do you want to request accommodation at ${hostelName}?`)) {
+        return;
+    }
+    
+    try {
+        // In production, save to database
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { error } = await window.CMS_CONFIG.supabase
+                .from('hostel_requests')
+                .insert({
+                    student_id: currentStudent.student_id,
+                    hostel_name: hostelName,
+                    room_type: hostelType,
+                    request_date: new Date().toISOString(),
+                    status: 'pending'
+                });
+            
+            if (error) {
+                console.error('Error creating hostel request:', error);
+                showToast('Error submitting request: ' + error.message, 'error');
+                return;
+            }
+        }
+        
+        showToast(`✅ Hostel request for ${hostelName} submitted successfully!`, 'success');
+        await loadHostelRequests();
+    } catch (error) {
+        console.error('Error requesting hostel:', error);
+        showToast('Error submitting request. Please try again.', 'error');
+    }
+}
+
+async function loadHostelRequests() {
+    if (!currentStudent) return;
+    
+    const tbody = document.getElementById('hostelRequestsTable');
+    if (!tbody) return;
+    
+    try {
+        let requests = [];
+        
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
+                .from('hostel_requests')
+                .select('*')
+                .eq('student_id', currentStudent.student_id)
+                .order('request_date', { ascending: false });
+            
+            if (!error && data) {
+                requests = data;
+            }
+        }
+        
+        if (requests.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hostel requests yet</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = requests.map(req => `
+            <tr>
+                <td>${formatDate(req.request_date)}</td>
+                <td>${req.hostel_name}</td>
+                <td>${req.room_type}</td>
+                <td><span class="status-badge status-${req.status}">${req.status}</span></td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading hostel requests:', error);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Error loading requests</td></tr>';
+    }
 }
 
 function getDemoAdminStaff() {
