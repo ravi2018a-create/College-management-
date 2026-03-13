@@ -1131,24 +1131,25 @@ function displayDepartmentCards(departments) {
         return;
     }
     
+    // Use flex for horizontal layout
+    grid.style.display = 'flex';
+    grid.style.flexWrap = 'wrap';
+    grid.style.justifyContent = 'center';
+    grid.style.gap = '15px';
+    
     grid.innerHTML = departments.map((dept) => `
-        <div style="background: white; border: 1px solid #dee2e6; border-radius: 4px; padding: 15px;">
-            <div style="border-bottom: 1px solid #e9ecef; padding-bottom: 10px; margin-bottom: 12px;">
-                <div style="font-weight: 600; color: #2c3e50; font-size: 14px; margin-bottom: 4px;">${dept.name || 'Unknown'}</div>
-                <div style="font-size: 11px; color: #6c757d;">Department Code: ${dept.code || 'N/A'}</div>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <div style="font-size: 11px; color: #6c757d; margin-bottom: 3px;">Head of Department</div>
-                <div style="font-size: 13px; color: #495057; font-weight: 500;">${dept.hod || 'Not Assigned'}</div>
-            </div>
+        <div style="background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; min-width: 200px; flex: 1; max-width: 280px;">
+            <div style="font-weight: 600; color: #2c3e50; font-size: 14px; margin-bottom: 8px;">${dept.name || 'Unknown'}</div>
+            <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">Code: ${dept.code || 'N/A'}</div>
+            <div style="font-size: 13px; color: #495057; margin-bottom: 10px;"><strong>HOD:</strong> ${dept.hod || 'Not Assigned'}</div>
             <div style="display: flex; gap: 15px; padding-top: 10px; border-top: 1px solid #e9ecef;">
-                <div style="flex: 1;">
+                <div>
                     <div style="font-size: 16px; font-weight: 600; color: #2c3e50;" id="dept-${dept.code}-teachers">0</div>
-                    <div style="font-size: 10px; color: #6c757d; text-transform: uppercase;">Teachers</div>
+                    <div style="font-size: 10px; color: #6c757d;">Teachers</div>
                 </div>
-                <div style="flex: 1;">
+                <div>
                     <div style="font-size: 16px; font-weight: 600; color: #2c3e50;" id="dept-${dept.code}-students">0</div>
-                    <div style="font-size: 10px; color: #6c757d; text-transform: uppercase;">Students</div>
+                    <div style="font-size: 10px; color: #6c757d;">Students</div>
                 </div>
             </div>
         </div>

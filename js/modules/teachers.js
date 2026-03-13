@@ -1,32 +1,22 @@
 // Teachers Module
 
-// Demo teachers data
-let DEMO_TEACHERS = [
-    { id: 'TCH001', teacherId: 'TCH2020001', name: 'Dr. Anil Kumar', department: 'CS', subjects: 'Data Structures, Algorithms', designation: 'Professor', contact: '9876543300', email: 'anil@college.edu' },
-    { id: 'TCH002', teacherId: 'TCH2018001', name: 'Dr. Priya Mehta', department: 'AIML', subjects: 'Machine Learning, Deep Learning', designation: 'Associate Professor', contact: '9876543301', email: 'priya@college.edu' },
-    { id: 'TCH003', teacherId: 'TCH2015001', name: 'Dr. Rajesh Sharma', department: 'ECE', subjects: 'Digital Electronics, Microprocessors', designation: 'Professor', contact: '9876543302', email: 'rajesh@college.edu' },
-    { id: 'TCH004', teacherId: 'TCH2019001', name: 'Dr. Sunita Verma', department: 'EE', subjects: 'Power Systems, Control Systems', designation: 'Professor', contact: '9876543303', email: 'sunita@college.edu' },
-    { id: 'TCH005', teacherId: 'TCH2021001', name: 'Mr. Rahul Singh', department: 'CS', subjects: 'Web Development, Database', designation: 'Assistant Professor', contact: '9876543304', email: 'rahuls@college.edu' },
-    { id: 'TCH006', teacherId: 'TCH2022001', name: 'Ms. Anjali Gupta', department: 'AIML', subjects: 'Python, NLP', designation: 'Assistant Professor', contact: '9876543305', email: 'anjali@college.edu' }
-];
+// Live data storage
+let currentTeachers = [];
 
 // Load teachers data
 async function loadTeachersData() {
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        displayTeachersData(DEMO_TEACHERS);
-    } else {
-        try {
-            const { data, error } = await window.CMS_CONFIG.supabase
-                .from('teachers')
-                .select('*')
-                .order('name');
-            
-            if (error) throw error;
-            displayTeachersData(data || DEMO_TEACHERS);
-        } catch (err) {
-            console.error('Error loading teachers:', err);
-            displayTeachersData(DEMO_TEACHERS);
-        }
+    try {
+        const { data, error } = await window.CMS_CONFIG.supabase
+            .from('teachers')
+            .select('*')
+            .order('name');
+        
+        if (error) throw error;
+        currentTeachers = data || [];
+        displayTeachersData(currentTeachers);
+    } catch (err) {
+        console.error('Error loading teachers:', err);
+        displayTeachersData([]);
     }
 }
 
@@ -67,7 +57,7 @@ function displayTeachersData(teachers) {
 function filterTeachers() {
     const deptFilter = document.getElementById('teacherDeptFilter').value;
     
-    let filtered = [...DEMO_TEACHERS];
+    let filtered = [...currentTeachers];
     
     if (deptFilter) {
         filtered = filtered.filter(t => t.department === deptFilter);

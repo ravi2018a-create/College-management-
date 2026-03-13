@@ -1,49 +1,31 @@
 // Library Module
 
-// Demo books data
-let DEMO_BOOKS = [
-    { id: 'BK001', bookId: 'BK2020001', title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', subject: 'Algorithms', department: 'CS', year: 2, available: 5, total: 8 },
-    { id: 'BK002', bookId: 'BK2020002', title: 'Machine Learning', author: 'Tom Mitchell', subject: 'Machine Learning', department: 'AIML', year: 3, available: 3, total: 5 },
-    { id: 'BK003', bookId: 'BK2020003', title: 'Digital Design', author: 'Morris Mano', subject: 'Digital Electronics', department: 'ECE', year: 2, available: 7, total: 10 },
-    { id: 'BK004', bookId: 'BK2020004', title: 'Power System Analysis', author: 'Hadi Saadat', subject: 'Power Systems', department: 'EE', year: 3, available: 4, total: 6 },
-    { id: 'BK005', bookId: 'BK2020005', title: 'Database Systems', author: 'Raghu Ramakrishnan', subject: 'Database', department: 'CS', year: 3, available: 6, total: 8 },
-    { id: 'BK006', bookId: 'BK2020006', title: 'Deep Learning', author: 'Ian Goodfellow', subject: 'Deep Learning', department: 'AIML', year: 4, available: 2, total: 4 }
-];
-
-let DEMO_ISSUED_BOOKS = [
-    { id: 'ISS001', issueId: 'ISS2026001', bookId: 'BK001', bookTitle: 'Introduction to Algorithms', studentId: 'STU001', studentName: 'Rahul Kumar', issueDate: '2026-03-01', dueDate: '2026-03-15', status: 'Active' },
-    { id: 'ISS002', issueId: 'ISS2026002', bookId: 'BK002', bookTitle: 'Machine Learning', studentId: 'STU002', studentName: 'Priya Sharma', issueDate: '2026-02-25', dueDate: '2026-03-10', status: 'Overdue' },
-    { id: 'ISS003', issueId: 'ISS2026003', bookId: 'BK005', bookTitle: 'Database Systems', studentId: 'STU003', studentName: 'Amit Singh', issueDate: '2026-03-05', dueDate: '2026-03-19', status: 'Active' }
-];
-
-let DEMO_RETURNS = [
-    { id: 'RET001', returnId: 'RET2026001', bookId: 'BK003', bookTitle: 'Digital Design', studentId: 'STU004', studentName: 'Sneha Patel', issueDate: '2026-02-15', returnDate: '2026-02-28', fine: 0 },
-    { id: 'RET002', returnId: 'RET2026002', bookId: 'BK004', bookTitle: 'Power System Analysis', studentId: 'STU005', studentName: 'Vikram Joshi', issueDate: '2026-02-01', returnDate: '2026-02-20', fine: 100 }
-];
+// Live data storage
+let currentBooks = [];
+let currentIssuedBooks = [];
+let currentReturns = [];
 
 // Load library data
 async function loadLibraryData() {
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        displayBooksData(DEMO_BOOKS);
-        displayIssuedBooksData(DEMO_ISSUED_BOOKS);
-        displayReturnsData(DEMO_RETURNS);
-    } else {
-        try {
-            const [booksRes, issuedRes, returnsRes] = await Promise.all([
-                window.CMS_CONFIG.supabase.from('library_books').select('*'),
-                window.CMS_CONFIG.supabase.from('book_issues').select('*').eq('status', 'Active'),
-                window.CMS_CONFIG.supabase.from('book_returns').select('*')
-            ]);
-            
-            displayBooksData(booksRes.data || DEMO_BOOKS);
-            displayIssuedBooksData(issuedRes.data || DEMO_ISSUED_BOOKS);
-            displayReturnsData(returnsRes.data || DEMO_RETURNS);
-        } catch (err) {
-            console.error('Error loading library data:', err);
-            displayBooksData(DEMO_BOOKS);
-            displayIssuedBooksData(DEMO_ISSUED_BOOKS);
-            displayReturnsData(DEMO_RETURNS);
-        }
+    try {
+        const [booksRes, issuedRes, returnsRes] = await Promise.all([
+            window.CMS_CONFIG.supabase.from('library_books').select('*'),
+            window.CMS_CONFIG.supabase.from('book_issues').select('*').eq('status', 'Active'),
+            window.CMS_CONFIG.supabase.from('book_returns').select('*')
+        ]);
+        
+        currentBooks = booksRes.data || [];
+        currentIssuedBooks = issuedRes.data || [];
+        currentReturns = returnsRes.data || [];
+        
+        displayBooksData(currentBooks);
+        displayIssuedBooksData(currentIssuedBooks);
+        displayReturnsData(currentReturns);
+    } catch (err) {
+        console.error('Error loading library data:', err);
+        displayBooksData([]);
+        displayIssuedBooksData([]);
+        displayReturnsData([]);
     }
 }
 
@@ -133,7 +115,7 @@ function filterBooks() {
     const deptFilter = document.getElementById('bookDeptFilter').value;
     const yearFilter = document.getElementById('bookYearFilter').value;
     
-    let filtered = [...DEMO_BOOKS];
+    let filtered = [...currentBooks];
     
     if (search) {
         filtered = filtered.filter(b => 

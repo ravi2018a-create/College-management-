@@ -1,33 +1,22 @@
 // Students Module
 
-// Demo students data
-let DEMO_STUDENTS = [
-    { id: 'STU001', studentId: 'STU2025001', name: 'Rahul Kumar', department: 'CS', year: 2, email: 'rahul@email.com', phone: '9876543210', hostelStatus: 'Yes', feeStatus: 'Paid' },
-    { id: 'STU002', studentId: 'STU2025002', name: 'Priya Sharma', department: 'AIML', year: 2, email: 'priya@email.com', phone: '9876543211', hostelStatus: 'No', feeStatus: 'Paid' },
-    { id: 'STU003', studentId: 'STU2025003', name: 'Amit Singh', department: 'ECE', year: 3, email: 'amit@email.com', phone: '9876543212', hostelStatus: 'Yes', feeStatus: 'Pending' },
-    { id: 'STU004', studentId: 'STU2025004', name: 'Sneha Patel', department: 'EE', year: 1, email: 'sneha@email.com', phone: '9876543213', hostelStatus: 'Yes', feeStatus: 'Paid' },
-    { id: 'STU005', studentId: 'STU2024001', name: 'Vikram Joshi', department: 'CS', year: 3, email: 'vikram@email.com', phone: '9876543214', hostelStatus: 'No', feeStatus: 'Pending' },
-    { id: 'STU006', studentId: 'STU2024002', name: 'Anjali Reddy', department: 'AIML', year: 4, email: 'anjali@email.com', phone: '9876543215', hostelStatus: 'No', feeStatus: 'Partial' },
-    { id: 'STU007', studentId: 'STU2023001', name: 'Kiran Kumar', department: 'ECE', year: 4, email: 'kiran@email.com', phone: '9876543216', hostelStatus: 'Yes', feeStatus: 'Pending' }
-];
+// Live data storage
+let currentStudents = [];
 
 // Load students data
 async function loadStudentsData() {
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        displayStudentsData(DEMO_STUDENTS);
-    } else {
-        try {
-            const { data, error } = await window.CMS_CONFIG.supabase
-                .from('students')
-                .select('*')
-                .order('name');
-            
-            if (error) throw error;
-            displayStudentsData(data || DEMO_STUDENTS);
-        } catch (err) {
-            console.error('Error loading students:', err);
-            displayStudentsData(DEMO_STUDENTS);
-        }
+    try {
+        const { data, error } = await window.CMS_CONFIG.supabase
+            .from('students')
+            .select('*')
+            .order('name');
+        
+        if (error) throw error;
+        currentStudents = data || [];
+        displayStudentsData(currentStudents);
+    } catch (err) {
+        console.error('Error loading students:', err);
+        displayStudentsData([]);
     }
 }
 
@@ -86,7 +75,7 @@ function filterStudents() {
     const deptFilter = document.getElementById('studentDeptFilter').value;
     const yearFilter = document.getElementById('studentYearFilter').value;
     
-    let filtered = [...DEMO_STUDENTS];
+    let filtered = [...currentStudents];
     
     if (search) {
         filtered = filtered.filter(s => 

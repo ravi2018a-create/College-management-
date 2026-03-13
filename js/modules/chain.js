@@ -1,45 +1,23 @@
 // Chain Management Module
 
-// Demo chain data
-const DEMO_CHAIN_DATA = {
-    chairman: {
-        id: 'CHRM001',
-        position: 'Chairman',
-        name: 'Dr. Robert Smith',
-        contact: '9876543210',
-        email: 'chairman@college.edu'
-    },
-    principal: {
-        id: 'PRPL001',
-        position: 'Principal',
-        name: 'Dr. Sarah Johnson',
-        contact: '9876543211',
-        email: 'principal@college.edu'
-    }
-};
-
 // Load chain data
 async function loadChainData() {
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        displayChainData(DEMO_CHAIN_DATA);
-    } else {
-        try {
-            const { data, error } = await window.CMS_CONFIG.supabase
-                .from('chain_management')
-                .select('*');
-            
-            if (error) throw error;
-            
-            const chainData = {};
-            data.forEach(record => {
-                chainData[record.position.toLowerCase()] = record;
-            });
-            
-            displayChainData(chainData);
-        } catch (err) {
-            console.error('Error loading chain data:', err);
-            displayChainData(DEMO_CHAIN_DATA);
-        }
+    try {
+        const { data, error } = await window.CMS_CONFIG.supabase
+            .from('chain_management')
+            .select('*');
+        
+        if (error) throw error;
+        
+        const chainData = {};
+        (data || []).forEach(record => {
+            chainData[record.position.toLowerCase()] = record;
+        });
+        
+        displayChainData(chainData);
+    } catch (err) {
+        console.error('Error loading chain data:', err);
+        displayChainData({});
     }
 }
 

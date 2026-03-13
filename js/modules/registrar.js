@@ -171,26 +171,19 @@ async function handleStaffSubmit(e) {
         contact: document.getElementById('staffContact').value
     };
     
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        DEMO_DCC_STAFF.push(formData);
+    try {
+        const { error } = await window.CMS_CONFIG.supabase
+            .from('registrar_staff')
+            .insert(formData);
+        
+        if (error) throw error;
+        
         showToast('Staff member added successfully', 'success');
         closeModal();
-        displayDCCStaff(DEMO_DCC_STAFF);
-    } else {
-        try {
-            const { error } = await window.CMS_CONFIG.supabase
-                .from('registrar_staff')
-                .insert(formData);
-            
-            if (error) throw error;
-            
-            showToast('Staff member added successfully', 'success');
-            closeModal();
-            loadRegistrarData();
-        } catch (err) {
-            console.error('Error saving staff:', err);
-            showToast('Error saving record', 'error');
-        }
+        loadRegistrarData();
+    } catch (err) {
+        console.error('Error saving staff:', err);
+        showToast('Error saving record', 'error');
     }
 }
 
@@ -258,26 +251,19 @@ async function handleScholarshipSubmit(e) {
         status: document.getElementById('schStatus').value
     };
     
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        DEMO_SCHOLARSHIPS.push(formData);
+    try {
+        const { error } = await window.CMS_CONFIG.supabase
+            .from('scholarships')
+            .insert(formData);
+        
+        if (error) throw error;
+        
         showToast('Scholarship added successfully', 'success');
         closeModal();
-        displayScholarships(DEMO_SCHOLARSHIPS);
-    } else {
-        try {
-            const { error } = await window.CMS_CONFIG.supabase
-                .from('scholarships')
-                .insert(formData);
-            
-            if (error) throw error;
-            
-            showToast('Scholarship added successfully', 'success');
-            closeModal();
-            loadRegistrarData();
-        } catch (err) {
-            console.error('Error saving scholarship:', err);
-            showToast('Error saving record', 'error');
-        }
+        loadRegistrarData();
+    } catch (err) {
+        console.error('Error saving scholarship:', err);
+        showToast('Error saving record', 'error');
     }
 }
 
@@ -342,64 +328,93 @@ async function handleBenefitSubmit(e) {
         status: document.getElementById('benStatus').value
     };
     
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        DEMO_BENEFITS.push(formData);
+    try {
+        const { error } = await window.CMS_CONFIG.supabase
+            .from('benefits')
+            .insert(formData);
+        
+        if (error) throw error;
+        
         showToast('Benefit added successfully', 'success');
         closeModal();
-        displayBenefits(DEMO_BENEFITS);
-    } else {
-        try {
-            const { error } = await window.CMS_CONFIG.supabase
-                .from('benefits')
-                .insert(formData);
-            
-            if (error) throw error;
-            
-            showToast('Benefit added successfully', 'success');
-            closeModal();
-            loadRegistrarData();
-        } catch (err) {
-            console.error('Error saving benefit:', err);
-            showToast('Error saving record', 'error');
-        }
+        loadRegistrarData();
+    } catch (err) {
+        console.error('Error saving benefit:', err);
+        showToast('Error saving record', 'error');
     }
 }
 
 // View scholarship details
-function viewScholarship(id) {
-    const scholarship = DEMO_SCHOLARSHIPS.find(s => s.id === id);
-    if (!scholarship) return;
-    
-    const content = `
-        <div class="scholarship-details">
-            <p><strong>Student:</strong> ${scholarship.studentName}</p>
-            <p><strong>Type:</strong> ${scholarship.type}</p>
-            <p><strong>Amount:</strong> ${formatCurrency(scholarship.amount)}</p>
-            <p><strong>Status:</strong> ${createStatusBadge(scholarship.status)}</p>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
-        </div>
-    `;
-    
-    openModal('Scholarship Details', content);
+async function viewScholarship(id) {
+    try {
+        const { data: scholarship, error } = await window.CMS_CONFIG.supabase
+            .from('scholarships')
+            .select('*')
+            .eq('id', id)
+            .single();
+        
+        if (error) throw error;
+        if (!scholarship) {
+            showToast('Scholarship not found', 'error');
+            return;
+        }
+        
+        const content = `
+            <div class="scholarship-details">
+                <p><strong>Student:</strong> ${scholarship.studentName}</p>
+                <p><strong>Type:</strong> ${scholarship.type}</p>
+                <p><strong>Amount:</strong> ${formatCurrency(scholarship.amount)}</p>
+                <p><strong>Status:</strong> ${createStatusBadge(scholarship.status)}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        `;
+        
+        openModal('Scholarship Details', content);
+    } catch (err) {
+        console.error('Error fetching scholarship:', err);
+        showToast('Error loading scholarship details', 'error');
+    }
 }
 
 // Edit and delete stubs
 function editStaff(id) { showToast('Edit staff: ' + id); }
-function deleteStaff(id) { 
+async function deleteStaff(id) { 
     if (confirm('Delete this staff member?')) {
-        DEMO_DCC_STAFF = DEMO_DCC_STAFF.filter(s => s.id !== id);
-        displayDCCStaff(DEMO_DCC_STAFF);
-        showToast('Staff member deleted', 'success');
+        try {
+            const { error } = await window.CMS_CONFIG.supabase
+                .from('registrar_staff')
+                .delete()
+                .eq('id', id);
+            
+            if (error) throw error;
+            
+            showToast('Staff member deleted', 'success');
+            loadRegistrarData();
+        } catch (err) {
+            console.error('Error deleting staff:', err);
+            showToast('Error deleting staff member', 'error');
+        }
     }
 }
 function editScholarship(id) { showToast('Edit scholarship: ' + id); }
 function editBenefit(id) { showToast('Edit benefit: ' + id); }
-function deleteBenefit(id) {
+async function deleteBenefit(id) {
     if (confirm('Delete this benefit?')) {
-        DEMO_BENEFITS = DEMO_BENEFITS.filter(b => b.id !== id);
-        displayBenefits(DEMO_BENEFITS);
-        showToast('Benefit deleted', 'success');
+        try {
+            const { error } = await window.CMS_CONFIG.supabase
+                .from('benefits')
+                .delete()
+                .eq('id', id);
+            
+            if (error) throw error;
+            
+            showToast('Benefit deleted', 'success');
+            loadRegistrarData();
+        } catch (err) {
+            console.error('Error deleting benefit:', err);
+            showToast('Error deleting benefit', 'error');
+        }
     }
 }

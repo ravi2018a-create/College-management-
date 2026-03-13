@@ -394,7 +394,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="icon orange"><i class="fas fa-building"></i></div>
-                        <div class="info"><h4>4</h4><p>Departments</p></div>
+                        <div class="info"><h4 id="totalDepartments">0</h4><p>Departments</p></div>
                     </div>
                     <div class="stat-card">
                         <div class="icon purple"><i class="fas fa-book"></i></div>
@@ -418,59 +418,19 @@
                 </div>
                 
                 <div class="org-chart" style="padding: 20px; overflow-x: auto;">
-                    <!-- Level 1: Chairman -->
-                    <div class="org-level">
-                        <div class="org-card chairman">
-                            <i class="fas fa-crown"></i>
-                            <h4>Chairman</h4>
-                            <h3>Dr. Robert Smith</h3>
-                            <p>chairman@college.edu</p>
+                    <!-- Dynamic Management Hierarchy -->
+                    <div id="adminManagementHierarchy" style="text-align: center; margin-bottom: 30px;">
+                        <div style="color: var(--gray); padding: 30px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading hierarchy...
                         </div>
                     </div>
-                    <div style="width:2px; height:30px; background:#ddd; margin: 0 auto;"></div>
                     
-                    <!-- Level 2: Principal -->
-                    <div class="org-level">
-                        <div class="org-card principal">
-                            <i class="fas fa-user-tie"></i>
-                            <h4>Principal</h4>
-                            <h3>Dr. Sarah Johnson</h3>
-                            <p>principal@college.edu</p>
-                        </div>
-                    </div>
-                    <div style="width:2px; height:30px; background:#ddd; margin: 0 auto;"></div>
-                    
-                    <!-- Level 3: Departments & HODs -->
+                    <!-- Departments & HODs -->
                     <div class="card" style="margin: 20px auto; max-width: 1200px;">
                         <div class="card-header"><h3><i class="fas fa-building"></i> Departments & HODs</h3></div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; padding: 20px;">
-                            <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                                <i class="fas fa-laptop-code" style="font-size: 32px; margin-bottom: 10px;"></i>
-                                <h4 style="margin: 10px 0 5px 0;">Computer Science</h4>
-                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Anil Kumar</p>
-                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="csTeacherCount">Loading...</p>
-                                <p style="opacity: 0.8; font-size: 12px;" id="csStudentCount">Loading...</p>
-                            </div>
-                            <div style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                                <i class="fas fa-robot" style="font-size: 32px; margin-bottom: 10px;"></i>
-                                <h4 style="margin: 10px 0 5px 0;">AI & ML</h4>
-                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Priya Mehta</p>
-                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="aimlTeacherCount">Loading...</p>
-                                <p style="opacity: 0.8; font-size: 12px;" id="aimlStudentCount">Loading...</p>
-                            </div>
-                            <div style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                                <i class="fas fa-microchip" style="font-size: 32px; margin-bottom: 10px;"></i>
-                                <h4 style="margin: 10px 0 5px 0;">Electronics</h4>
-                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Rajesh Sharma</p>
-                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="eceTeacherCount">Loading...</p>
-                                <p style="opacity: 0.8; font-size: 12px;" id="eceStudentCount">Loading...</p>
-                            </div>
-                            <div style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                                <i class="fas fa-bolt" style="font-size: 32px; margin-bottom: 10px;"></i>
-                                <h4 style="margin: 10px 0 5px 0;">Electrical</h4>
-                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Sunita Verma</p>
-                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="eeTeacherCount">Loading...</p>
-                                <p style="opacity: 0.8; font-size: 12px;" id="eeStudentCount">Loading...</p>
+                        <div id="adminDepartmentsGrid" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px;">
+                            <div style="color: var(--gray); padding: 30px; width: 100%; text-align: center;">
+                                <i class="fas fa-spinner fa-spin"></i> Loading departments...
                             </div>
                         </div>
                     </div>
@@ -572,9 +532,9 @@
             <!-- Registrar Module -->
             <div id="registrarModule" class="module-content">
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="icon blue"><i class="fas fa-users"></i></div><div class="info"><h4>12</h4><p>DCC Staff</p></div></div>
-                    <div class="stat-card"><div class="icon green"><i class="fas fa-award"></i></div><div class="info"><h4>156</h4><p>Scholarships</p></div></div>
-                    <div class="stat-card"><div class="icon orange"><i class="fas fa-gift"></i></div><div class="info"><h4>89</h4><p>Benefits</p></div></div>
+                    <div class="stat-card"><div class="icon blue"><i class="fas fa-users"></i></div><div class="info"><h4 id="dccStaffCount">0</h4><p>DCC Staff</p></div></div>
+                    <div class="stat-card"><div class="icon green"><i class="fas fa-award"></i></div><div class="info"><h4 id="scholarshipsCount">0</h4><p>Scholarships</p></div></div>
+                    <div class="stat-card"><div class="icon orange"><i class="fas fa-gift"></i></div><div class="info"><h4 id="benefitsCount">0</h4><p>Benefits</p></div></div>
                 </div>
                 <div class="card">
                     <div class="card-header"><h3>Scholarships</h3><button class="btn btn-primary btn-sm" onclick="openModal('scholarshipModal')"><i class="fas fa-plus"></i> Add</button></div>
@@ -666,20 +626,17 @@
             <!-- Hostel Module -->
             <div id="hostelModule" class="module-content">
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="icon blue"><i class="fas fa-building"></i></div><div class="info"><h4>4</h4><p>Total Hostels</p></div></div>
-                    <div class="stat-card"><div class="icon green"><i class="fas fa-bed"></i></div><div class="info"><h4>400</h4><p>Total Rooms</p></div></div>
-                    <div class="stat-card"><div class="icon orange"><i class="fas fa-user-check"></i></div><div class="info"><h4>350</h4><p>Occupied</p></div></div>
+                    <div class="stat-card"><div class="icon blue"><i class="fas fa-building"></i></div><div class="info"><h4 id="totalHostelsCount">0</h4><p>Total Hostels</p></div></div>
+                    <div class="stat-card"><div class="icon green"><i class="fas fa-bed"></i></div><div class="info"><h4 id="totalRoomsCount">0</h4><p>Total Rooms</p></div></div>
+                    <div class="stat-card"><div class="icon orange"><i class="fas fa-user-check"></i></div><div class="info"><h4 id="occupiedRoomsCount">0</h4><p>Occupied</p></div></div>
                 </div>
                 <div class="card">
                     <div class="card-header"><h3>Hostels</h3></div>
                     <div class="table-container">
                         <table>
                             <thead><tr><th>Name</th><th>Type</th><th>Total Rooms</th><th>Occupied</th><th>Vacant</th><th>Warden</th></tr></thead>
-                            <tbody>
-                                <tr><td>Boys Hostel A</td><td>Boys</td><td>120</td><td>105</td><td>15</td><td>Mr. Rajesh Kumar</td></tr>
-                                <tr><td>Boys Hostel B</td><td>Boys</td><td>100</td><td>92</td><td>8</td><td>Mr. Suresh Patel</td></tr>
-                                <tr><td>Girls Hostel A</td><td>Girls</td><td>100</td><td>88</td><td>12</td><td>Mrs. Sunita Sharma</td></tr>
-                                <tr><td>Girls Hostel B</td><td>Girls</td><td>80</td><td>65</td><td>15</td><td>Mrs. Anita Verma</td></tr>
+                            <tbody id="hostelTableBody">
+                                <tr><td colspan="6" style="text-align:center; color:var(--gray);">Loading hostels...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -699,8 +656,8 @@
                 </div>
                 <div id="feeContent" style="display: none;">
                     <div class="stats-grid">
-                        <div class="stat-card"><div class="icon green"><i class="fas fa-check-circle"></i></div><div class="info"><h4>₹45,00,000</h4><p>Total Collected</p></div></div>
-                        <div class="stat-card"><div class="icon red"><i class="fas fa-exclamation-circle"></i></div><div class="info"><h4>₹12,50,000</h4><p>Pending Dues</p></div></div>
+                        <div class="stat-card"><div class="icon green"><i class="fas fa-check-circle"></i></div><div class="info"><h4 id="totalCollected">₹0</h4><p>Total Collected</p></div></div>
+                        <div class="stat-card"><div class="icon red"><i class="fas fa-exclamation-circle"></i></div><div class="info"><h4 id="pendingDues">₹0</h4><p>Pending Dues</p></div></div>
                     </div>
                     <div class="card">
                         <div class="card-header"><h3>Fee Records</h3><button class="btn btn-primary btn-sm" onclick="openModal('feeModal')"><i class="fas fa-plus"></i> Add Record</button></div>
@@ -1678,12 +1635,37 @@
                 return;
             }
             
+            // Load chain management (hierarchy)
+            const { data: chainData, error: chainError } = await supabaseClient
+                .from('chain_management')
+                .select('*')
+                .order('position');
+            
+            if (!chainError && chainData) {
+                displayAdminManagementHierarchy(chainData);
+            } else {
+                document.getElementById('adminManagementHierarchy').innerHTML = '<div style="color: var(--gray); padding: 20px;">No management data available</div>';
+            }
+            
+            // Load departments
+            const { data: departments, error: deptError } = await supabaseClient
+                .from('departments')
+                .select('*')
+                .order('code');
+            
+            if (!deptError && departments) {
+                displayAdminDepartments(departments);
+            } else {
+                document.getElementById('adminDepartmentsGrid').innerHTML = '<div style="color: var(--gray); padding: 20px; width: 100%; text-align: center;">No departments found</div>';
+            }
+            
             // Load teachers
             const { data: teachers, error: teacherError } = await supabaseClient.from('teachers').select('*').order('department', { ascending: true });
             if (!teacherError && teachers) {
                 allChainTeachers = teachers;
                 displayChainTeachers(teachers);
-                updateDepartmentCounts(teachers, 'teacher');
+                // Update department counts
+                if (departments) updateAdminDeptCounts(departments, teachers, 'teachers');
             } else {
                 document.getElementById('chainTeachersTable').innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No teachers found in database</td></tr>';
             }
@@ -1693,10 +1675,116 @@
             if (!studentError && students) {
                 allChainStudents = students;
                 displayChainStudents(students);
-                updateDepartmentCounts(students, 'student');
+                // Update department counts
+                if (departments) updateAdminDeptCounts(departments, teachers, 'students', students);
             } else {
                 document.getElementById('chainStudentsTable').innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No students found in database</td></tr>';
             }
+        }
+        
+        // Display admin management hierarchy
+        function displayAdminManagementHierarchy(chainData) {
+            const container = document.getElementById('adminManagementHierarchy');
+            if (!container) return;
+            
+            if (!chainData || chainData.length === 0) {
+                container.innerHTML = '<div style="color: var(--gray); padding: 20px;">No management data available</div>';
+                return;
+            }
+            
+            // Group by position
+            const positionGroups = {};
+            chainData.forEach(person => {
+                const pos = person.position || 'Other';
+                if (!positionGroups[pos]) positionGroups[pos] = [];
+                positionGroups[pos].push(person);
+            });
+            
+            // Position order
+            const positionOrder = ['Chairman', 'Vice Chairman', 'Principal', 'Vice Principal', 'Dean', 'Registrar', 'Other'];
+            const sortedPositions = Object.keys(positionGroups).sort((a, b) => {
+                const indexA = positionOrder.indexOf(a);
+                const indexB = positionOrder.indexOf(b);
+                return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+            });
+            
+            const borderColors = {
+                'Chairman': '#2c3e50', 'Vice Chairman': '#34495e',
+                'Principal': '#2980b9', 'Vice Principal': '#3498db',
+                'Dean': '#27ae60', 'Registrar': '#8e44ad'
+            };
+            
+            let html = '';
+            sortedPositions.forEach((position, index) => {
+                const people = positionGroups[position];
+                const borderColor = borderColors[position] || '#7f8c8d';
+                
+                html += `<div style="margin-bottom: 15px;">`;
+                html += `<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">`;
+                
+                people.forEach(person => {
+                    html += `
+                        <div style="background: white; border: 2px solid ${borderColor}; padding: 15px 25px; border-radius: 6px; min-width: 180px; max-width: 250px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #7f8c8d; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">${position}</div>
+                            <div style="font-weight: 600; color: #2c3e50; font-size: 14px;">${person.name || 'N/A'}</div>
+                            <div style="font-size: 11px; color: #7f8c8d; margin-top: 3px;">${person.email || '-'}</div>
+                            ${person.contact ? `<div style="font-size: 11px; color: #7f8c8d;">${person.contact}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+                if (index < sortedPositions.length - 1) {
+                    html += `<div style="width: 2px; height: 15px; background: #bdc3c7; margin: 8px auto;"></div>`;
+                }
+                html += `</div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Display admin departments horizontally
+        function displayAdminDepartments(departments) {
+            const container = document.getElementById('adminDepartmentsGrid');
+            if (!container) return;
+            
+            if (!departments || departments.length === 0) {
+                container.innerHTML = '<div style="color: var(--gray); padding: 20px; width: 100%; text-align: center;">No departments found</div>';
+                return;
+            }
+            
+            container.innerHTML = departments.map((dept) => `
+                <div style="background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; min-width: 200px; flex: 1; max-width: 280px;">
+                    <div style="font-weight: 600; color: #2c3e50; font-size: 14px; margin-bottom: 8px;">${dept.name || 'Unknown'}</div>
+                    <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">Code: ${dept.code || 'N/A'}</div>
+                    <div style="font-size: 13px; color: #495057; margin-bottom: 10px;"><strong>HOD:</strong> ${dept.hod || 'Not Assigned'}</div>
+                    <div style="display: flex; gap: 15px; padding-top: 10px; border-top: 1px solid #e9ecef;">
+                        <div>
+                            <div style="font-size: 16px; font-weight: 600; color: #2c3e50;" id="admin-dept-${dept.code}-teachers">0</div>
+                            <div style="font-size: 10px; color: #6c757d;">Teachers</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 16px; font-weight: 600; color: #2c3e50;" id="admin-dept-${dept.code}-students">0</div>
+                            <div style="font-size: 10px; color: #6c757d;">Students</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Update admin department counts
+        function updateAdminDeptCounts(departments, teachers, type, students = null) {
+            departments.forEach(dept => {
+                const teacherCount = teachers ? teachers.filter(t => t.department === dept.code || t.department === dept.name).length : 0;
+                const teacherEl = document.getElementById(`admin-dept-${dept.code}-teachers`);
+                if (teacherEl) teacherEl.textContent = teacherCount;
+                
+                if (students) {
+                    const studentCount = students.filter(s => s.department === dept.code || s.department === dept.name).length;
+                    const studentEl = document.getElementById(`admin-dept-${dept.code}-students`);
+                    if (studentEl) studentEl.textContent = studentCount;
+                }
+            });
         }
 
         function displayChainTeachers(teachers) {
@@ -1735,36 +1823,6 @@
                     <td>${s.phone || 'N/A'}</td>
                 </tr>
             `).join('');
-        }
-
-        function updateDepartmentCounts(data, type) {
-            const deptMap = {
-                'CS': { teacher: 'csTeacherCount', student: 'csStudentCount' },
-                'AIML': { teacher: 'aimlTeacherCount', student: 'aimlStudentCount' },
-                'ECE': { teacher: 'eceTeacherCount', student: 'eceStudentCount' },
-                'EE': { teacher: 'eeTeacherCount', student: 'eeStudentCount' }
-            };
-            
-            // Count by department
-            const counts = { CS: 0, AIML: 0, ECE: 0, EE: 0 };
-            data.forEach(item => {
-                if (counts.hasOwnProperty(item.department)) {
-                    counts[item.department]++;
-                }
-            });
-            
-            // Update UI
-            Object.keys(deptMap).forEach(dept => {
-                const elementId = deptMap[dept][type];
-                const element = document.getElementById(elementId);
-                if (element) {
-                    if (type === 'teacher') {
-                        element.textContent = `${counts[dept]} Teacher${counts[dept] !== 1 ? 's' : ''}`;
-                    } else {
-                        element.textContent = `${counts[dept]} Student${counts[dept] !== 1 ? 's' : ''}`;
-                    }
-                }
-            });
         }
 
         function filterChainStudents() {

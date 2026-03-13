@@ -1,55 +1,45 @@
 // Hostel Module
 
-// Demo hostel data
-let DEMO_HOSTELS = [
-    { id: 'HST001', name: 'Block A - Boys Hostel', type: 'Boys', totalRooms: 100, occupied: 85, warden: 'Mr. Rajendra Kumar', contact: '9876543400' },
-    { id: 'HST002', name: 'Block B - Boys Hostel', type: 'Boys', totalRooms: 80, occupied: 72, warden: 'Mr. Suresh Patil', contact: '9876543401' },
-    { id: 'HST003', name: 'Block C - Girls Hostel', type: 'Girls', totalRooms: 120, occupied: 95, warden: 'Mrs. Lakshmi Devi', contact: '9876543402' },
-    { id: 'HST004', name: 'Block D - Girls Hostel', type: 'Girls', totalRooms: 60, occupied: 48, warden: 'Mrs. Sunita Sharma', contact: '9876543403' }
-];
-
-let DEMO_ALLOCATIONS = [
-    { id: 'ALLOC001', studentId: 'STU001', studentName: 'Rahul Kumar', hostelId: 'HST001', hostelName: 'Block A - Boys Hostel', roomNo: 'A-101', allocationDate: '2025-07-15' },
-    { id: 'ALLOC002', studentId: 'STU003', studentName: 'Amit Singh', hostelId: 'HST002', hostelName: 'Block B - Boys Hostel', roomNo: 'B-205', allocationDate: '2025-07-20' },
-    { id: 'ALLOC003', studentId: 'STU004', studentName: 'Sneha Patel', hostelId: 'HST003', hostelName: 'Block C - Girls Hostel', roomNo: 'C-112', allocationDate: '2025-07-18' },
-    { id: 'ALLOC004', studentId: 'STU007', studentName: 'Kiran Kumar', hostelId: 'HST001', hostelName: 'Block A - Boys Hostel', roomNo: 'A-305', allocationDate: '2024-07-10' }
-];
+// Live data storage
+let currentHostels = [];
+let currentAllocations = [];
 
 // Load hostel data
 async function loadHostelData() {
-    if (window.CMS_CONFIG.DEMO_MODE) {
-        displayHostelData(DEMO_HOSTELS);
-        displayAllocationData(DEMO_ALLOCATIONS);
+    try {
+        const [hostelsRes, allocationsRes] = await Promise.all([
+            window.CMS_CONFIG.supabase.from('hostels').select('*'),
+            window.CMS_CONFIG.supabase.from('hostel_allocations').select('*')
+        ]);
+        
+        currentHostels = hostelsRes.data || [];
+        currentAllocations = allocationsRes.data || [];
+        
+        displayHostelData(currentHostels);
+        displayAllocationData(currentAllocations);
         updateHostelStats();
-    } else {
-        try {
-            const [hostelsRes, allocationsRes] = await Promise.all([
-                window.CMS_CONFIG.supabase.from('hostels').select('*'),
-                window.CMS_CONFIG.supabase.from('hostel_allocations').select('*')
-            ]);
-            
-            displayHostelData(hostelsRes.data || DEMO_HOSTELS);
-            displayAllocationData(allocationsRes.data || DEMO_ALLOCATIONS);
-            updateHostelStats();
-        } catch (err) {
-            console.error('Error loading hostel data:', err);
-            displayHostelData(DEMO_HOSTELS);
-            displayAllocationData(DEMO_ALLOCATIONS);
-            updateHostelStats();
-        }
+    } catch (err) {
+        console.error('Error loading hostel data:', err);
+        displayHostelData([]);
+        displayAllocationData([]);
+        updateHostelStats();
     }
 }
 
 // Update hostel statistics
 function updateHostelStats() {
-    const boysHostels = DEMO_HOSTELS.filter(h => h.type === 'Boys');
-    const girlsHostels = DEMO_HOSTELS.filter(h => h.type === 'Girls');
+    const boysHostels = currentHostels.filter(h => h.type === 'Boys');
+    const girlsHostels = currentHostels.filter(h => h.type === 'Girls');
     
-    document.getElementById('boysHostelCount').textContent = boysHostels.length;
-    document.getElementById('boysStudentCount').textContent = boysHostels.reduce((sum, h) => sum + h.occupied, 0);
+    const boysCountEl = document.getElementById('boysHostelCount');
+    const boysStudEl = document.getElementById('boysStudentCount');
+    const girlsCountEl = document.getElementById('girlsHostelCount');
+    const girlsStudEl = document.getElementById('girlsStudentCount');
     
-    document.getElementById('girlsHostelCount').textContent = girlsHostels.length;
-    document.getElementById('girlsStudentCount').textContent = girlsHostels.reduce((sum, h) => sum + h.occupied, 0);
+    if (boysCountEl) boysCountEl.textContent = boysHostels.length;
+    if (boysStudEl) boysStudEl.textContent = boysHostels.reduce((sum, h) => sum + (h.occupied || 0), 0);
+    if (girlsCountEl) girlsCountEl.textContent = girlsHostels.length;
+    if (girlsStudEl) girlsStudEl.textContent = girlsHostels.reduce((sum, h) => sum + (h.occupied || 0), 0);
 }
 
 // Display hostel data
