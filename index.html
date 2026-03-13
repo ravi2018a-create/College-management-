@@ -914,14 +914,6 @@
     <div id="toast" class="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Success!</span></div>
 
     <script>
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://qumvgdhznkmlccexoawo.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1bXZnZGh6bmttbGNjZXhvYXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODU5MTEsImV4cCI6MjA4ODk2MTkxMX0.fDK7bJMVyTWEgiq84EZ6lSscmHAgVSjKpDZ7iqjijFU';
-        let supabaseClient = null;
-        try {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch(e) { console.warn('Supabase not available, using local mode'); }
-
         // Configuration
         const FEE_PASSWORD = 'admin123';
         const DEMO_USERS = [
@@ -1201,10 +1193,10 @@
         }
 
         async function loadStudents() {
-            if (!supabaseClient) return;
+            if (!window.CMS_CONFIG?.supabase) return;
             
             // Apply department filter for HOD and Teacher roles
-            let query = supabaseClient.from('students').select('*');
+            let query = window.CMS_CONFIG.supabase.from('students').select('*');
             
             if (getDataScope() === 'department' && currentUser.department) {
                 query = query.eq('department', currentUser.department);
@@ -1252,10 +1244,10 @@
         }
 
         async function loadTeachers() {
-            if (!supabaseClient) return;
+            if (!window.CMS_CONFIG?.supabase) return;
             
             // Apply department filter for HOD and Teacher roles
-            let query = supabaseClient.from('teachers').select('*');
+            let query = window.CMS_CONFIG.supabase.from('teachers').select('*');
             
             if (getDataScope() === 'department' && currentUser.department) {
                 query = query.eq('department', currentUser.department);
@@ -1303,8 +1295,8 @@
         }
 
         async function loadBooks() {
-            if (!supabaseClient) return;
-            const { data, error } = await supabaseClient.from('library_books').select('*').order('created_at', { ascending: false });
+            if (!window.CMS_CONFIG?.supabase) return;
+            const { data, error } = await window.CMS_CONFIG.supabase.from('library_books').select('*').order('created_at', { ascending: false });
             if (error) {
                 console.error('Error loading books:', error);
                 document.getElementById('booksTable').innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray);">No books in library. Librarian can add books.</td></tr>';
@@ -1366,11 +1358,11 @@
         }
 
         async function updateDashboardStats() {
-            if (!supabaseClient) return;
+            if (!window.CMS_CONFIG?.supabase) return;
             
             try {
                 // Count students
-                const { count: studentCount } = await supabaseClient.from('students').select('*', { count: 'exact', head: true });
+                const { count: studentCount } = await window.CMS_CONFIG.supabase.from('students').select('*', { count: 'exact', head: true });
                 const totalStudentsEl = document.getElementById('totalStudents');
                 if (totalStudentsEl) totalStudentsEl.textContent = studentCount || 0;
                 
@@ -1382,17 +1374,17 @@
                 if (accountantTotalStudentsEl) accountantTotalStudentsEl.textContent = studentCount || 0;
                 
                 // Count teachers
-                const { count: teacherCount } = await supabaseClient.from('teachers').select('*', { count: 'exact', head: true });
+                const { count: teacherCount } = await window.CMS_CONFIG.supabase.from('teachers').select('*', { count: 'exact', head: true });
                 const totalTeachersEl = document.getElementById('totalTeachers');
                 if (totalTeachersEl) totalTeachersEl.textContent = teacherCount || 0;
                 
                 // Count departments
-                const { count: deptCount } = await supabaseClient.from('departments').select('*', { count: 'exact', head: true });
+                const { count: deptCount } = await window.CMS_CONFIG.supabase.from('departments').select('*', { count: 'exact', head: true });
                 const totalDepartmentsEl = document.getElementById('totalDepartments');
                 if (totalDepartmentsEl) totalDepartmentsEl.textContent = deptCount || 0;
                 
                 // Count books
-                const { count: bookCount } = await supabaseClient.from('library_books').select('*', { count: 'exact', head: true });
+                const { count: bookCount } = await window.CMS_CONFIG.supabase.from('library_books').select('*', { count: 'exact', head: true });
                 const totalBooksEl = document.getElementById('totalBooks');
                 if (totalBooksEl) totalBooksEl.textContent = bookCount || 0;
                 
@@ -1401,7 +1393,7 @@
                 if (librarianTotalBooksEl) librarianTotalBooksEl.textContent = bookCount || 0;
                 
                 // Count issued books for librarian role
-                const { count: issuedCount } = await supabaseClient.from('book_issues').select('*', { count: 'exact', head: true }).eq('status', 'Active');
+                const { count: issuedCount } = await window.CMS_CONFIG.supabase.from('book_issues').select('*', { count: 'exact', head: true }).eq('status', 'Active');
                 const issuedBooksEl = document.getElementById('issuedBooks');
                 if (issuedBooksEl) issuedBooksEl.textContent = issuedCount || 0;
                 
@@ -1481,8 +1473,8 @@
             const defaultPassword = 'student123';
 
             // Save to Supabase database
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('students').insert({
+            if (window.CMS_CONFIG?.supabase) {
+                const { error } = await window.CMS_CONFIG.supabase.from('students').insert({
                     student_id: stuId,
                     name: name,
                     email: email.toLowerCase(),
@@ -1554,8 +1546,8 @@
             const defaultPassword = 'student123';
 
             // Save to Supabase database
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('students').insert({
+            if (window.CMS_CONFIG?.supabase) {
+                const { error } = await window.CMS_CONFIG.supabase.from('students').insert({
                     student_id: stuId,
                     name: name,
                     email: email.toLowerCase(),
@@ -1612,8 +1604,8 @@
             const tchId = 'TCH' + String(teacherCounter).padStart(3, '0');
 
             // Save to Supabase database
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('teachers').insert({
+            if (window.CMS_CONFIG?.supabase) {
+                const { error } = await window.CMS_CONFIG.supabase.from('teachers').insert({
                     teacher_id: tchId,
                     name: name,
                     email: email.toLowerCase(),
@@ -1652,8 +1644,8 @@
             if (!bookId || !title || !author || !total) { showToast('Please fill all required fields', 'error'); return; }
 
             // Save to Supabase database
-            if (supabaseClient) {
-                const { error } = await supabaseClient.from('library_books').insert({
+            if (window.CMS_CONFIG?.supabase) {
+                const { error } = await window.CMS_CONFIG.supabase.from('library_books').insert({
                     book_id: bookId,
                     title: title,
                     author: author,
@@ -1683,9 +1675,9 @@
         // Delete Functions
         async function deleteStudent(studentId) {
             if (!confirm('Are you sure you want to delete this student?')) return;
-            if (!supabaseClient) { showToast('Database not connected', 'error'); return; }
-            
-            const { error } = await supabaseClient.from('students').delete().eq('student_id', studentId);
+            if (!window.CMS_CONFIG?.supabase) { showToast('Database not connected', 'error'); return; }
+
+            const { error } = await window.CMS_CONFIG.supabase.from('students').delete().eq('student_id', studentId);
             if (error) {
                 showToast('Error deleting student: ' + error.message, 'error');
             } else {
@@ -1697,9 +1689,9 @@
 
         async function deleteTeacher(teacherId) {
             if (!confirm('Are you sure you want to delete this teacher?')) return;
-            if (!supabaseClient) { showToast('Database not connected', 'error'); return; }
-            
-            const { error } = await supabaseClient.from('teachers').delete().eq('teacher_id', teacherId);
+            if (!window.CMS_CONFIG?.supabase) { showToast('Database not connected', 'error'); return; }
+
+            const { error } = await window.CMS_CONFIG.supabase.from('teachers').delete().eq('teacher_id', teacherId);
             if (error) {
                 showToast('Error deleting teacher: ' + error.message, 'error');
             } else {
@@ -1711,9 +1703,9 @@
 
         async function deleteBook(bookId) {
             if (!confirm('Are you sure you want to delete this book?')) return;
-            if (!supabaseClient) { showToast('Database not connected', 'error'); return; }
-            
-            const { error } = await supabaseClient.from('library_books').delete().eq('book_id', bookId);
+            if (!window.CMS_CONFIG?.supabase) { showToast('Database not connected', 'error'); return; }
+
+            const { error } = await window.CMS_CONFIG.supabase.from('library_books').delete().eq('book_id', bookId);
             if (error) {
                 showToast('Error deleting book: ' + error.message, 'error');
             } else {
@@ -1741,13 +1733,13 @@
         let allChainStudents = [];
 
         async function loadChainData() {
-            if (!supabaseClient) {
+            if (!window.CMS_CONFIG?.supabase) {
                 showToast('Database not connected', 'error');
                 return;
             }
             
             // Load chain management (hierarchy)
-            const { data: chainData, error: chainError } = await supabaseClient
+            const { data: chainData, error: chainError } = await window.CMS_CONFIG.supabase
                 .from('chain_management')
                 .select('*')
                 .order('position');
@@ -1759,7 +1751,7 @@
             }
             
             // Load departments
-            const { data: departments, error: deptError } = await supabaseClient
+            const { data: departments, error: deptError } = await window.CMS_CONFIG.supabase
                 .from('departments')
                 .select('*')
                 .order('code');
@@ -1771,7 +1763,7 @@
             }
             
             // Load teachers
-            const { data: teachers, error: teacherError } = await supabaseClient.from('teachers').select('*').order('department', { ascending: true });
+            const { data: teachers, error: teacherError } = await window.CMS_CONFIG.supabase.from('teachers').select('*').order('department', { ascending: true });
             if (!teacherError && teachers) {
                 allChainTeachers = teachers;
                 displayChainTeachers(teachers);
@@ -1782,7 +1774,7 @@
             }
             
             // Load students
-            const { data: students, error: studentError } = await supabaseClient.from('students').select('*').order('department', { ascending: true });
+            const { data: students, error: studentError } = await window.CMS_CONFIG.supabase.from('students').select('*').order('department', { ascending: true });
             if (!studentError && students) {
                 allChainStudents = students;
                 displayChainStudents(students);
@@ -1986,12 +1978,12 @@
         // ========== NOTICES MODULE ==========
         
         async function loadNotices() {
-            if (!supabaseClient) {
+            if (!window.CMS_CONFIG?.supabase) {
                 document.getElementById('noticesTable').innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray);">Database connection unavailable</td></tr>';
                 return;
             }
             
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('notices')
                 .select('*')
                 .eq('is_active', true)
@@ -2042,7 +2034,7 @@
         }
         
         async function saveNotice() {
-            if (!supabaseClient) {
+            if (!window.CMS_CONFIG?.supabase) {
                 showToast('Database connection unavailable', 'error');
                 return;
             }
@@ -2073,7 +2065,7 @@
                 is_active: true
             };
             
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('notices')
                 .insert([noticeData])
                 .select();
@@ -2091,9 +2083,9 @@
         }
         
         async function viewNotice(noticeId) {
-            if (!supabaseClient) return;
+            if (!window.CMS_CONFIG?.supabase) return;
             
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('notices')
                 .select('*')
                 .eq('id', noticeId)
@@ -2149,13 +2141,13 @@
         async function deleteNotice(noticeId) {
             if (!confirm('Are you sure you want to delete this notice?')) return;
             
-            if (!supabaseClient) {
+            if (!window.CMS_CONFIG?.supabase) {
                 showToast('Database connection unavailable', 'error');
                 return;
             }
             
             // Soft delete by setting is_active to false
-            const { error } = await supabaseClient
+            const { error } = await window.CMS_CONFIG.supabase
                 .from('notices')
                 .update({ is_active: false })
                 .eq('id', noticeId);
@@ -2175,9 +2167,9 @@
         // ============================================
 
         async function loadDepartments() {
-            if (!supabaseClient) return;
+            if (!window.CMS_CONFIG?.supabase) return;
 
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.CMS_CONFIG.supabase
                 .from('departments')
                 .select('*')
                 .order('code');
@@ -2236,12 +2228,12 @@
                 return;
             }
 
-            if (!supabaseClient) {
+            if (!window.CMS_CONFIG?.supabase) {
                 showToast('Database connection unavailable', 'error');
                 return;
             }
 
-            const { error } = await supabaseClient
+            const { error } = await window.CMS_CONFIG.supabase
                 .from('departments')
                 .update({ hod: hodName })
                 .eq('code', code);
