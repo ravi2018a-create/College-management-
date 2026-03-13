@@ -1053,6 +1053,17 @@ async function approveHostelRequest(requestId) {
             throw new Error(`Student already has allocation in ${existingAlloc.hostel_name}, Room ${existingAlloc.room_no}`);
         }
         
+        // Double-check in database to prevent race conditions
+        const { data: dbCheck, error: checkError } = await window.CMS_CONFIG.supabase
+            .from('hostel_allocations')
+            .select('*')
+            .eq('student_id', request.student_id)
+            .maybeSingle();
+        
+        if (!checkError && dbCheck) {
+            throw new Error(`Student already has allocation in ${dbCheck.hostel_name}, Room ${dbCheck.room_no}`);
+        }
+        
         // 4. Create hostel allocation record
         const allocationData = {
             student_id: request.student_id,
