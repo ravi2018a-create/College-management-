@@ -129,30 +129,10 @@ async function handleStudentLogin(e) {
                     showToast('Invalid password', 'error');
                 }
             } else {
-                // Check demo students as fallback
-                const demoStudent = getDemoStudent(email, password);
-                if (demoStudent) {
-                    currentStudent = demoStudent;
-                    localStorage.setItem('currentStudent', JSON.stringify(demoStudent));
-                    showDashboard();
-                    loadAllModuleData();
-                    showToast('Welcome back, ' + demoStudent.name + '!', 'success');
-                } else {
-                    showToast('Student not found. Please register first.', 'error');
-                }
+                showToast('Student not found. Please register first.', 'error');
             }
         } else {
-            // Demo mode
-            const demoStudent = getDemoStudent(email, password);
-            if (demoStudent) {
-                currentStudent = demoStudent;
-                localStorage.setItem('currentStudent', JSON.stringify(demoStudent));
-                showDashboard();
-                loadAllModuleData();
-                showToast('Welcome back, ' + demoStudent.name + '!', 'success');
-            } else {
-                showToast('Invalid credentials. Try: john.smith@college.edu / student123', 'error');
-            }
+            showToast('Database connection error. Please try again.', 'error');
         }
     } catch (error) {
         console.error('Login error:', error);
@@ -161,57 +141,6 @@ async function handleStudentLogin(e) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
     }
-}
-
-// Get Demo Student
-function getDemoStudent(email, password) {
-    const demoStudents = {
-        'john.smith@college.edu': {
-            id: 1,
-            student_id: 'STU001',
-            name: 'John Smith',
-            email: 'john.smith@college.edu',
-            phone: '9876543210',
-            department_id: 1,
-            department_name: 'Computer Science',
-            department: 'CS',
-            semester: 4,
-            year: 2,
-            batch: '2022-2026',
-            gender: 'Male',
-            dob: '2004-05-15',
-            address: '123 Main Street, City',
-            guardian_name: 'Robert Smith',
-            guardian_phone: '9876543211',
-            admission_date: '2022-07-15',
-            status: 'active'
-        },
-        'sarah.johnson@college.edu': {
-            id: 2,
-            student_id: 'STU002',
-            name: 'Sarah Johnson',
-            email: 'sarah.johnson@college.edu',
-            phone: '9876543212',
-            department_id: 2,
-            department_name: 'Electronics',
-            department: 'ECE',
-            semester: 6,
-            year: 3,
-            batch: '2021-2025',
-            gender: 'Female',
-            dob: '2003-08-20',
-            address: '456 Oak Avenue, City',
-            guardian_name: 'Michael Johnson',
-            guardian_phone: '9876543213',
-            admission_date: '2021-07-10',
-            status: 'active'
-        }
-    };
-
-    if (demoStudents[email] && password === 'student123') {
-        return demoStudents[email];
-    }
-    return null;
 }
 
 // Show Dashboard
@@ -376,62 +305,11 @@ async function loadFeeData() {
             }
         }
 
-        // Use demo data if no records
-        if (feeRecords.length === 0) {
-            feeRecords = getDemoFeeRecords();
-        }
-
         renderFeeData(feeRecords);
     } catch (error) {
         console.error('Error loading fees:', error);
-        renderFeeData(getDemoFeeRecords());
+        renderFeeData([]);
     }
-}
-
-// Get Demo Fee Records
-function getDemoFeeRecords() {
-    return [
-        {
-            id: 1,
-            fee_type: 'Tuition Fee',
-            amount: 50000,
-            paid_amount: 50000,
-            status: 'paid',
-            due_date: '2024-06-30',
-            payment_date: '2024-06-15',
-            semester: 'Semester 3'
-        },
-        {
-            id: 2,
-            fee_type: 'Tuition Fee',
-            amount: 50000,
-            paid_amount: 35000,
-            status: 'partial',
-            due_date: '2024-12-31',
-            payment_date: '2024-10-15',
-            semester: 'Semester 4'
-        },
-        {
-            id: 3,
-            fee_type: 'Library Fee',
-            amount: 2000,
-            paid_amount: 2000,
-            status: 'paid',
-            due_date: '2024-07-15',
-            payment_date: '2024-07-10',
-            semester: 'Annual'
-        },
-        {
-            id: 4,
-            fee_type: 'Lab Fee',
-            amount: 5000,
-            paid_amount: 0,
-            status: 'pending',
-            due_date: '2024-12-31',
-            payment_date: null,
-            semester: 'Semester 4'
-        }
-    ];
 }
 
 // Render Fee Data
@@ -501,54 +379,11 @@ async function loadLibraryData() {
             }
         }
 
-        // Use demo data if no records
-        if (bookIssues.length === 0) {
-            bookIssues = getDemoBookIssues();
-        }
-
         renderLibraryData(bookIssues);
     } catch (error) {
         console.error('Error loading library:', error);
-        renderLibraryData(getDemoBookIssues());
+        renderLibraryData([]);
     }
-}
-
-// Get Demo Book Issues
-function getDemoBookIssues() {
-    const today = new Date();
-    const dueDate1 = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const dueDate2 = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
-    
-    return [
-        {
-            id: 1,
-            book_title: 'Introduction to Algorithms',
-            book_author: 'Thomas H. Cormen',
-            issue_date: new Date(today.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-            due_date: dueDate1.toISOString(),
-            status: 'issued',
-            library_books: { title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848' }
-        },
-        {
-            id: 2,
-            book_title: 'Database System Concepts',
-            book_author: 'Abraham Silberschatz',
-            issue_date: new Date(today.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-            due_date: dueDate2.toISOString(),
-            status: 'overdue',
-            library_books: { title: 'Database System Concepts', author: 'Abraham Silberschatz', isbn: '978-0078022159' }
-        },
-        {
-            id: 3,
-            book_title: 'Computer Networks',
-            book_author: 'Andrew S. Tanenbaum',
-            issue_date: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-            due_date: new Date(today.getTime() - 16 * 24 * 60 * 60 * 1000).toISOString(),
-            return_date: new Date(today.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-            status: 'returned',
-            library_books: { title: 'Computer Networks', author: 'Andrew S. Tanenbaum', isbn: '978-0132126953' }
-        }
-    ];
 }
 
 // Render Library Data
@@ -627,34 +462,11 @@ async function loadHostelData() {
             }
         }
 
-        // Use demo data if no allocation
-        if (!hostelAllocation) {
-            hostelAllocation = getDemoHostelAllocation();
-        }
-
         renderHostelData(hostelAllocation);
     } catch (error) {
         console.error('Error loading hostel:', error);
-        renderHostelData(getDemoHostelAllocation());
+        renderHostelData(null);
     }
-}
-
-// Get Demo Hostel Allocation
-function getDemoHostelAllocation() {
-    return {
-        id: 1,
-        hostel_name: 'Boys Hostel A',
-        room_no: '204',
-        floor: '2nd Floor',
-        bed_number: 'B2',
-        hostel_type: 'AC',
-        warden_name: 'Mr. Rajesh Kumar',
-        warden_phone: '9876543220',
-        allocation_date: '2022-07-20',
-        mess_type: 'Vegetarian',
-        monthly_fee: 8000,
-        hostels: { name: 'Boys Hostel A', type: 'AC', warden: 'Mr. Rajesh Kumar' }
-    };
 }
 
 // Render Hostel Data
@@ -745,59 +557,11 @@ async function loadScholarshipData() {
             if (benData) benefits = benData;
         }
 
-        // Use demo data if no records
-        if (scholarships.length === 0) {
-            scholarships = getDemoScholarships();
-        }
-        if (benefits.length === 0) {
-            benefits = getDemoBenefits();
-        }
-
         renderScholarshipData(scholarships, benefits);
     } catch (error) {
         console.error('Error loading scholarships:', error);
-        renderScholarshipData(getDemoScholarships(), getDemoBenefits());
+        renderScholarshipData([], []);
     }
-}
-
-// Get Demo Scholarships
-function getDemoScholarships() {
-    return [
-        {
-            id: 1,
-            name: 'Merit Scholarship',
-            amount: 25000,
-            status: 'approved',
-            academic_year: '2024-25',
-            description: 'Awarded for academic excellence'
-        },
-        {
-            id: 2,
-            name: 'State Government Scholarship',
-            amount: 15000,
-            status: 'pending',
-            academic_year: '2024-25',
-            description: 'State-sponsored educational support'
-        }
-    ];
-}
-
-// Get Demo Benefits
-function getDemoBenefits() {
-    return [
-        {
-            id: 1,
-            name: 'Bus Pass Concession',
-            type: 'Transport',
-            description: '50% discount on annual bus pass'
-        },
-        {
-            id: 2,
-            name: 'Book Bank Facility',
-            type: 'Education',
-            description: 'Free textbooks from library book bank'
-        }
-    ];
 }
 
 // Render Scholarship Data
@@ -869,55 +633,11 @@ async function loadNoticesData() {
             }
         }
 
-        // Use demo data if no records
-        if (notices.length === 0) {
-            notices = getDemoNotices();
-        }
-
         renderNoticesData(notices);
     } catch (error) {
         console.error('Error loading notices:', error);
-        renderNoticesData(getDemoNotices());
+        renderNoticesData([]);
     }
-}
-
-// Get Demo Notices
-function getDemoNotices() {
-    const today = new Date();
-    return [
-        {
-            id: 1,
-            title: 'Mid-Semester Examination Schedule',
-            content: 'Mid-semester examinations will be held from 15th to 22nd of this month. Please check your department notice board for the detailed timetable.',
-            category: 'exam',
-            priority: 'important',
-            created_at: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-            id: 2,
-            title: 'Annual Sports Day Registration',
-            content: 'Registration for Annual Sports Day events is now open. Interested students can register at the Sports Department before the 20th.',
-            category: 'event',
-            priority: 'normal',
-            created_at: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-            id: 3,
-            title: 'Library Extended Hours',
-            content: 'During examination period, the library will remain open from 8 AM to 10 PM. Make use of this extended timing for your exam preparation.',
-            category: 'general',
-            priority: 'normal',
-            created_at: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-            id: 4,
-            title: 'Fee Payment Deadline',
-            content: 'Last date for fee payment without fine is 30th of this month. Students with pending fees are requested to clear their dues immediately.',
-            category: 'important',
-            priority: 'urgent',
-            created_at: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()
-        }
-    ];
 }
 
 // Render Notices Data
@@ -1032,9 +752,6 @@ async function loadStaffData() {
             }
         }
         
-        if (leadership.length === 0) {
-            leadership = getDemoLeadership();
-        }
         renderLeadership(leadership);
 
         // Load All Teachers
@@ -1050,10 +767,6 @@ async function loadStaffData() {
                 allTeachers = data;
             }
         }
-        
-        if (allTeachers.length === 0) {
-            allTeachers = getDemoTeachers();
-        }
 
         // Load Departments
         let departments = [];
@@ -1065,10 +778,6 @@ async function loadStaffData() {
             if (!error && data) {
                 departments = data;
             }
-        }
-        
-        if (departments.length === 0) {
-            departments = getDemoDepartments();
         }
 
         // Separate teachers into my department and others
@@ -1101,18 +810,14 @@ async function loadStaffData() {
             }
         }
         
-        if (adminStaff.length === 0) {
-            adminStaff = getDemoAdminStaff();
-        }
         renderAdminStaff(adminStaff);
 
     } catch (error) {
         console.error('Error loading staff data:', error);
-        // Use demo data on error
-        renderLeadership(getDemoLeadership());
-        renderMyDeptStaff(getDemoTeachers().filter(t => t.department === myDept), null);
-        renderOtherDeptStaff(getDemoTeachers().filter(t => t.department !== myDept), getDemoDepartments());
-        renderAdminStaff(getDemoAdminStaff());
+        renderLeadership([]);
+        renderMyDeptStaff([], null);
+        renderOtherDeptStaff([], []);
+        renderAdminStaff([]);
     }
 }
 
@@ -1269,36 +974,6 @@ function renderAdminStaff(staff) {
             </div>
         </div>
     `).join('');
-}
-
-// Demo Data Functions for Staff
-function getDemoLeadership() {
-    return [
-        { position: 'Chairman', name: 'Dr. Robert Smith', email: 'chairman@college.edu', contact: '9876543210' },
-        { position: 'Principal', name: 'Dr. Sarah Johnson', email: 'principal@college.edu', contact: '9876543211' }
-    ];
-}
-
-function getDemoTeachers() {
-    return [
-        { name: 'Dr. Anil Kumar', email: 'anil.kumar@college.edu', contact: '9876543220', department: 'CS', designation: 'HOD & Professor', subjects: 'Data Structures, Algorithms' },
-        { name: 'Prof. Meera Singh', email: 'meera.singh@college.edu', contact: '9876543221', department: 'CS', designation: 'Associate Professor', subjects: 'Database Systems' },
-        { name: 'Mr. Rahul Verma', email: 'rahul.v@college.edu', contact: '9876543222', department: 'CS', designation: 'Assistant Professor', subjects: 'Web Development' },
-        { name: 'Dr. Priya Mehta', email: 'priya.mehta@college.edu', contact: '9876543223', department: 'AIML', designation: 'HOD & Professor', subjects: 'Machine Learning, AI' },
-        { name: 'Prof. Amit Sharma', email: 'amit.sharma@college.edu', contact: '9876543224', department: 'AIML', designation: 'Associate Professor', subjects: 'Deep Learning' },
-        { name: 'Dr. Rajesh Sharma', email: 'rajesh.sharma@college.edu', contact: '9876543225', department: 'ECE', designation: 'HOD & Professor', subjects: 'Signal Processing' },
-        { name: 'Prof. Neha Gupta', email: 'neha.gupta@college.edu', contact: '9876543226', department: 'ECE', designation: 'Associate Professor', subjects: 'VLSI Design' },
-        { name: 'Dr. Sunita Verma', email: 'sunita.verma@college.edu', contact: '9876543227', department: 'EE', designation: 'HOD & Professor', subjects: 'Power Systems' }
-    ];
-}
-
-function getDemoDepartments() {
-    return [
-        { code: 'CS', name: 'Computer Science', hod: 'Dr. Anil Kumar' },
-        { code: 'AIML', name: 'AI & Machine Learning', hod: 'Dr. Priya Mehta' },
-        { code: 'ECE', name: 'Electronics & Communication', hod: 'Dr. Rajesh Sharma' },
-        { code: 'EE', name: 'Electrical Engineering', hod: 'Dr. Sunita Verma' }
-    ];
 }
 
 // ===== ORGANIZATION MODULE =====
@@ -1970,14 +1645,4 @@ async function loadStudentNotices() {
         console.error('Error loading notices:', error);
         noticesList.innerHTML = '<p class="text-center" style="color:var(--danger);">Error loading notices</p>';
     }
-}
-
-function getDemoAdminStaff() {
-    return [
-        { name: 'Mr. Suresh Kumar', role: 'registrar', email: 'registrar@college.edu', contact: '9876543230' },
-        { name: 'Mrs. Anjali Sharma', role: 'librarian', email: 'library@college.edu', contact: '9876543231' },
-        { name: 'Mr. Ramesh Gupta', role: 'accountant', email: 'accounts@college.edu', contact: '9876543232' },
-        { name: 'Mr. Vijay Singh', role: 'hostel_warden', email: 'warden@college.edu', contact: '9876543233' },
-        { name: 'Mrs. Priya Iyer', role: 'admission_staff', email: 'admissions@college.edu', contact: '9876543234' }
-    ];
 }
