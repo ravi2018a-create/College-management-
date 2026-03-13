@@ -103,7 +103,36 @@ CREATE INDEX IF NOT EXISTS idx_hostel_allocations_status ON hostel_allocations(s
 COMMENT ON TABLE hostel_allocations IS 'Approved hostel room allocations';
 
 -- =================================================================
--- 5. Add department column to users (if implementing user management)
+-- 5. Create notices/announcements table
+-- =================================================================
+
+CREATE TABLE IF NOT EXISTS notices (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    posted_by VARCHAR(255) NOT NULL,
+    posted_by_role VARCHAR(50) NOT NULL,
+    posted_by_email VARCHAR(255),
+    department VARCHAR(100),
+    priority VARCHAR(20) DEFAULT 'normal',
+    target_audience VARCHAR(50) DEFAULT 'all',
+    posted_date TIMESTAMP DEFAULT NOW(),
+    expiry_date TIMESTAMP,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notices_posted_date ON notices(posted_date DESC);
+CREATE INDEX IF NOT EXISTS idx_notices_department ON notices(department);
+CREATE INDEX IF NOT EXISTS idx_notices_target_audience ON notices(target_audience);
+CREATE INDEX IF NOT EXISTS idx_notices_is_active ON notices(is_active);
+
+COMMENT ON TABLE notices IS 'Notice board for announcements visible to students and staff';
+COMMENT ON COLUMN notices.priority IS 'Priority: urgent, high, normal, low';
+COMMENT ON COLUMN notices.target_audience IS 'Target: all, students, teachers, department_specific';
+
+-- =================================================================
+-- 6. Add department column to users (if implementing user management)
 -- =================================================================
 
 -- Note: Uncomment if you have a users table for authentication
@@ -127,7 +156,7 @@ END $$;
 */
 
 -- =================================================================
--- 6. Create trigger to update available_copies when book is issued
+-- 7. Create trigger to update available_copies when book is issued
 -- =================================================================
 
 CREATE OR REPLACE FUNCTION update_book_availability() 
@@ -157,7 +186,7 @@ CREATE TRIGGER trigger_book_availability
     EXECUTE FUNCTION update_book_availability();
 
 -- =================================================================
--- 7. Add sample data verification
+-- 8. Add sample data verification
 -- =================================================================
 
 -- Check if tables have the required structure
@@ -169,12 +198,12 @@ SELECT
 FROM 
     information_schema.columns
 WHERE 
-    table_name IN ('library_books', 'book_issues', 'hostel_requests', 'hostel_allocations')
+    table_name IN ('library_books', 'book_issues', 'hostel_requests', 'hostel_allocations', 'notices')
 ORDER BY 
     table_name, ordinal_position;
 
 -- =================================================================
--- 8. Row-Level Security (RLS) Policies (Recommended for Production)
+-- 9. Row-Level Security (RLS) Policies (Recommended for Production)
 -- =================================================================
 
 -- Enable RLS on all tables
@@ -184,6 +213,7 @@ ALTER TABLE library_books ENABLE ROW LEVEL SECURITY;
 ALTER TABLE book_issues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hostel_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hostel_allocations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notices ENABLE ROW LEVEL SECURITY;
 
 -- Example: Allow all authenticated users to read students
 -- Modify these policies based on your authentication setup
@@ -220,4 +250,6 @@ SELECT 'book_issues', COUNT(*) FROM book_issues
 UNION ALL
 SELECT 'hostel_requests', COUNT(*) FROM hostel_requests
 UNION ALL
-SELECT 'hostel_allocations', COUNT(*) FROM hostel_allocations;
+SELECT 'hostel_allocations', COUNT(*) FROM hostel_allocations
+UNION ALL
+SELECT 'notices', COUNT(*) FROM notices;

@@ -285,6 +285,8 @@ function switchModule(moduleName) {
         loadLibraryCatalog();
     } else if (moduleName === 'hostel') {
         loadHostelOptions();
+    } else if (moduleName === 'notices') {
+        loadStudentNotices();
     }
 
     // Scroll to top of content area
@@ -1792,6 +1794,106 @@ async function loadHostelRequests() {
     } catch (error) {
         console.error('Error loading hostel requests:', error);
         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Error loading requests</td></tr>';
+    }
+}
+
+// ========== NOTICES MODULE ==========
+
+async function loadStudentNotices() {
+    const noticesList = document.getElementById('noticesList');
+    
+    if (!supabaseClient) {
+        noticesList.innerHTML = '<p class="text-center" style="color:var(--gray);">Database connection unavailable</p>';
+        return;
+    }
+    
+    try {
+        noticesList.innerHTML = '<p class="text-center" style="color:var(--gray);">Loading notices...</p>';
+        
+        // Get current date to filter out expired notices
+        const currentDate = new Date().toISOString();
+        
+        // Fetch notices that are active and either not expired or have no expiry date
+        // Also filter by target audience - show notices for "all" or "students"
+        let query = supabaseClient
+            .from('notices')
+            .select('*')
+            .eq('is_active', true)
+            .or(`expiry_date.is.null,expiry_date.gt.${currentDate}`)
+            .order('posted_date', { ascending: false });
+        
+        // If student has a department, also show department-specific notices
+        if (currentStudent && currentStudent.department) {
+            query = query.or(`target_audience.eq.all,target_audience.eq.students,and(target_audience.eq.department_specific,department.eq.${currentStudent.department})`);
+        } else {
+            query = query.in('target_audience', ['all', 'students']);
+        }
+        
+        const { data: notices, error } = await query;
+        
+        if (error) {
+            console.error('Error loading notices:', error);
+            noticesList.innerHTML = '<p class="text-center" style="color:var(--danger);">Error loading notices</p>';
+            return;
+        }
+        
+        if (!notices || notices.length === 0) {
+            noticesList.innerHTML = '<p class="text-center" style="color:var(--gray); padding:40px;">No notices available at the moment</p>';
+            return;
+        }
+        
+        // Display notices
+        noticesList.innerHTML = notices.map(notice => {
+            const postedDate = new Date(notice.posted_date).toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const expiryInfo = notice.expiry_date ? 
+                `<p style="color:var(--danger); font-size:12px; margin-top:5px;"><i class="fas fa-clock"></i> Expires: ${new Date(notice.expiry_date).toLocaleDateString('en-IN')}</p>` : 
+                '';
+            
+            const priorityColors = {
+                'urgent': '#dc3545',
+                'high': '#fd7e14',
+                'normal': '#198754',
+                'low': '#6c757d'
+            };
+            
+            const priorityBadge = notice.priority !== 'normal' ? 
+                `<span style="display:inline-block; padding:4px 12px; background:${priorityColors[notice.priority]}; color:white; border-radius:12px; font-size:11px; text-transform:uppercase; font-weight:600; margin-left:10px;">${notice.priority}</span>` : 
+                '';
+            
+            return `
+                <div class="notice-item" style="background:white; border:1px solid #e0e0e0; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.05); transition:all 0.3s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'">
+                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+                        <h4 style="color:var(--primary); font-size:18px; margin:0;">
+                            <i class="fas fa-bullhorn" style="margin-right:8px;"></i>
+                            ${notice.title}
+                            ${priorityBadge}
+                        </h4>
+                    </div>
+                    <div style="background:var(--light); padding:12px 15px; border-radius:8px; margin-bottom:12px;">
+                        <p style="color:var(--dark-gray); font-size:13px; margin:0;">
+                            <strong>Posted by:</strong> ${notice.posted_by} (${notice.posted_by_role.replace('_', ' ')}) &nbsp;|&nbsp; 
+                            <strong>Date:</strong> ${postedDate}
+                            ${notice.department ? ` &nbsp;|&nbsp; <strong>Department:</strong> ${notice.department}` : ''}
+                        </p>
+                        ${expiryInfo}
+                    </div>
+                    <div style="line-height:1.7; color:var(--dark); white-space:pre-wrap; padding:10px 0;">
+                        ${notice.content}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Error loading notices:', error);
+        noticesList.innerHTML = '<p class="text-center" style="color:var(--danger);">Error loading notices</p>';
     }
 }
 

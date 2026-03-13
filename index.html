@@ -366,6 +366,7 @@
                 <div class="nav-item" data-module="teachers"><i class="fas fa-chalkboard-teacher"></i><span>Teachers</span></div>
                 <div class="nav-item" data-module="library"><i class="fas fa-book"></i><span>Library</span></div>
                 <div class="nav-item" data-module="hostel"><i class="fas fa-hotel"></i><span>Hostel</span></div>
+                <div class="nav-item" data-module="notices"><i class="fas fa-bullhorn"></i><span>Notices</span></div>
                 <div class="nav-item" data-module="accounts"><i class="fas fa-rupee-sign"></i><span>Accounts</span></div>
             </nav>
         </aside>
@@ -682,6 +683,34 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Notices Module -->
+            <div id="noticesModule" class="module-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bullhorn"></i> Notice Board</h3>
+                        <button id="addNoticeBtn" class="btn btn-primary btn-sm" onclick="openModal('noticeModal')" style="display:none;"><i class="fas fa-plus"></i> Post Notice</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Posted By</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Priority</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="noticesTable">
+                                <tr><td colspan="7" style="text-align:center; color:var(--gray);">No notices posted yet. Post your first announcement!</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -787,6 +816,48 @@
         </div>
     </div>
 
+    <!-- Notice Modal -->
+    <div id="noticeModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3>Post New Notice</h3><button class="modal-close" onclick="closeModal('noticeModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="noticeForm">
+                    <div class="form-group">
+                        <label>Title <span style="color:red;">*</span></label>
+                        <input type="text" name="title" required placeholder="Enter notice title" maxlength="255">
+                    </div>
+                    <div class="form-group">
+                        <label>Content <span style="color:red;">*</span></label>
+                        <textarea name="content" required placeholder="Enter notice details..." rows="5" style="width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-family:inherit;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select name="priority" required>
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Audience</label>
+                        <select name="targetAudience" required>
+                            <option value="all">All (Students & Staff)</option>
+                            <option value="students">Students Only</option>
+                            <option value="teachers">Teachers Only</option>
+                            <option value="department_specific">My Department Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date (Optional)</label>
+                        <input type="date" name="expiryDate" min="" placeholder="Leave blank for no expiry">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn" onclick="closeModal('noticeModal')">Cancel</button><button class="btn btn-primary" onclick="saveNotice()">Post Notice</button></div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Success!</span></div>
 
@@ -816,56 +887,56 @@
         // Role-Based Access Control Permissions Matrix
         const ROLE_PERMISSIONS = {
             chairman: {
-                modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts'],
-                canEdit: ['students', 'teachers', 'library', 'hostel', 'accounts'],
-                canDelete: ['students', 'teachers', 'library'],
+                modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
+                canEdit: ['students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
+                canDelete: ['students', 'teachers', 'library', 'notices'],
                 dataScope: 'all' // Can see all data
             },
             principal: {
-                modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts'],
-                canEdit: ['students', 'teachers', 'admission', 'hostel'],
-                canDelete: ['students'],
+                modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
+                canEdit: ['students', 'teachers', 'admission', 'hostel', 'notices'],
+                canDelete: ['students', 'notices'],
                 dataScope: 'all'
             },
             registrar: {
-                modules: ['dashboard', 'chain', 'departments', 'students', 'teachers'],
-                canEdit: ['students', 'teachers'],
+                modules: ['dashboard', 'chain', 'departments', 'students', 'teachers', 'notices'],
+                canEdit: ['students', 'teachers', 'notices'],
                 canDelete: ['students'],
                 dataScope: 'all'
             },
             hod: {
-                modules: ['dashboard', 'departments', 'students', 'teachers'],
-                canEdit: ['students', 'teachers'],
+                modules: ['dashboard', 'departments', 'students', 'teachers', 'notices'],
+                canEdit: ['students', 'teachers', 'notices'],
                 canDelete: [],
                 dataScope: 'department' // Only their department
             },
             teacher: {
-                modules: ['dashboard', 'students', 'library'],
-                canEdit: [],
+                modules: ['dashboard', 'students', 'library', 'notices'],
+                canEdit: ['notices'],
                 canDelete: [],
                 dataScope: 'department'
             },
             librarian: {
-                modules: ['dashboard', 'library', 'students'],
-                canEdit: ['library'],
+                modules: ['dashboard', 'library', 'students', 'notices'],
+                canEdit: ['library', 'notices'],
                 canDelete: ['library'],
                 dataScope: 'all'
             },
             accountant: {
-                modules: ['dashboard', 'accounts', 'students'],
-                canEdit: ['accounts'],
+                modules: ['dashboard', 'accounts', 'students', 'notices'],
+                canEdit: ['accounts', 'notices'],
                 canDelete: [],
                 dataScope: 'all'
             },
             hostel_warden: {
-                modules: ['dashboard', 'hostel', 'students'],
-                canEdit: ['hostel'],
+                modules: ['dashboard', 'hostel', 'students', 'notices'],
+                canEdit: ['hostel', 'notices'],
                 canDelete: [],
                 dataScope: 'all'
             },
             admission_staff: {
-                modules: ['dashboard', 'admission', 'students'],
-                canEdit: ['admission', 'students'],
+                modules: ['dashboard', 'admission', 'students', 'notices'],
+                canEdit: ['admission', 'students', 'notices'],
                 canDelete: [],
                 dataScope: 'all'
             }
@@ -953,6 +1024,11 @@
             const addBookBtn = document.getElementById('addBookBtn');
             if (addBookBtn) {
                 addBookBtn.style.display = canEdit('library') ? 'inline-flex' : 'none';
+            }
+            
+            const addNoticeBtn = document.getElementById('addNoticeBtn');
+            if (addNoticeBtn) {
+                addNoticeBtn.style.display = canEdit('notices') ? 'inline-flex' : 'none';
             }
 
             // Update dashboard stats visibility based on role
@@ -1254,12 +1330,17 @@
             document.querySelectorAll('.module-content').forEach(m => m.classList.remove('active'));
             const module = document.getElementById(moduleName + 'Module');
             if (module) module.classList.add('active');
-            const titles = { 'dashboard': 'Dashboard', 'chain': 'Chain Management', 'departments': 'Departments', 'registrar': 'Registrar', 'admission': 'Admission Cell', 'students': 'Students', 'teachers': 'Teachers', 'library': 'Library', 'hostel': 'Hostel', 'accounts': 'Accounts' };
+            const titles = { 'dashboard': 'Dashboard', 'chain': 'Chain Management', 'departments': 'Departments', 'registrar': 'Registrar', 'admission': 'Admission Cell', 'students': 'Students', 'teachers': 'Teachers', 'library': 'Library', 'hostel': 'Hostel', 'accounts': 'Accounts', 'notices': 'Notice Board' };
             document.getElementById('moduleTitle').textContent = titles[moduleName] || 'Dashboard';
             
             // Load chain data when switching to chain module
             if (moduleName === 'chain') {
                 loadChainData();
+            }
+            
+            // Load notices when switching to notices module
+            if (moduleName === 'notices') {
+                loadNotices();
             }
         }
 
@@ -1694,6 +1775,193 @@
             showToast('Fee record for ' + studentName + ' added successfully', 'success');
             closeModal('feeModal');
             form.reset();
+        }
+
+        // ========== NOTICES MODULE ==========
+        
+        async function loadNotices() {
+            if (!supabaseClient) {
+                document.getElementById('noticesTable').innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray);">Database connection unavailable</td></tr>';
+                return;
+            }
+            
+            const { data, error } = await supabaseClient
+                .from('notices')
+                .select('*')
+                .eq('is_active', true)
+                .order('posted_date', { ascending: false });
+            
+            if (error) {
+                console.error('Error loading notices:', error);
+                showToast('Failed to load notices', 'error');
+                return;
+            }
+            
+            const tbody = document.getElementById('noticesTable');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray);">No notices posted yet. Post your first announcement!</td></tr>';
+                return;
+            }
+            
+            // Check if user can delete notices
+            const canDeleteNotices = canDelete('notices');
+            
+            tbody.innerHTML = data.map(notice => {
+                const postedDate = new Date(notice.posted_date).toLocaleDateString('en-IN', { 
+                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                });
+                
+                const priorityColors = {
+                    'urgent': 'status-inactive',
+                    'high': 'status-pending',
+                    'normal': 'status-active',
+                    'low': 'status-active'
+                };
+                
+                return `
+                    <tr>
+                        <td><strong>${notice.title}</strong><br><small style="color:var(--gray);">${notice.content.substring(0, 80)}${notice.content.length > 80 ? '...' : ''}</small></td>
+                        <td>${notice.posted_by}</td>
+                        <td><span style="text-transform:capitalize;">${notice.posted_by_role}</span></td>
+                        <td>${notice.department || 'All'}</td>
+                        <td><span class="status-badge ${priorityColors[notice.priority]}">${notice.priority.toUpperCase()}</span></td>
+                        <td>${postedDate}</td>
+                        <td class="actions">
+                            <button class="btn btn-icon btn-primary" onclick="viewNotice('${notice.id}')"><i class="fas fa-eye"></i></button>
+                            ${canDeleteNotices ? `<button class="btn btn-icon btn-danger" onclick="deleteNotice('${notice.id}')"><i class="fas fa-trash"></i></button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        async function saveNotice() {
+            if (!supabaseClient) {
+                showToast('Database connection unavailable', 'error');
+                return;
+            }
+            
+            const form = document.getElementById('noticeForm');
+            const title = form.title.value.trim();
+            const content = form.content.value.trim();
+            const priority = form.priority.value;
+            const targetAudience = form.targetAudience.value;
+            const expiryDate = form.expiryDate.value;
+            
+            if (!title || !content) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            
+            // Prepare notice data
+            const noticeData = {
+                title: title,
+                content: content,
+                posted_by: currentUser.name,
+                posted_by_role: currentUser.role,
+                posted_by_email: currentUser.email,
+                department: (targetAudience === 'department_specific') ? currentUser.department : null,
+                priority: priority,
+                target_audience: targetAudience,
+                expiry_date: expiryDate || null,
+                is_active: true
+            };
+            
+            const { data, error } = await supabaseClient
+                .from('notices')
+                .insert([noticeData])
+                .select();
+            
+            if (error) {
+                console.error('Error posting notice:', error);
+                showToast('Failed to post notice', 'error');
+                return;
+            }
+            
+            showToast('Notice posted successfully!', 'success');
+            closeModal('noticeModal');
+            form.reset();
+            loadNotices(); // Reload notices
+        }
+        
+        async function viewNotice(noticeId) {
+            if (!supabaseClient) return;
+            
+            const { data, error } = await supabaseClient
+                .from('notices')
+                .select('*')
+                .eq('id', noticeId)
+                .single();
+            
+            if (error || !data) {
+                showToast('Failed to load notice details', 'error');
+                return;
+            }
+            
+            const postedDate = new Date(data.posted_date).toLocaleDateString('en-IN', { 
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+            });
+            
+            const expiryInfo = data.expiry_date ? 
+                `<p style="color:var(--danger);"><strong>Expires:</strong> ${new Date(data.expiry_date).toLocaleDateString('en-IN')}</p>` : 
+                '';
+            
+            const modalContent = `
+                <div style="padding: 20px;">
+                    <h2 style="color:var(--primary); margin-bottom:15px;">${data.title}</h2>
+                    <div style="background:var(--light); padding:15px; border-radius:8px; margin-bottom:15px;">
+                        <p><strong>Posted by:</strong> ${data.posted_by} (${data.posted_by_role})</p>
+                        <p><strong>Date:</strong> ${postedDate}</p>
+                        <p><strong>Department:</strong> ${data.department || 'All Departments'}</p>
+                        <p><strong>Priority:</strong> <span style="text-transform:uppercase; color:var(--primary);">${data.priority}</span></p>
+                        <p><strong>Target:</strong> ${data.target_audience === 'all' ? 'Everyone' : data.target_audience}</p>
+                        ${expiryInfo}
+                    </div>
+                    <div style="background:white; padding:20px; border:1px solid #e0e0e0; border-radius:8px; line-height:1.6;">
+                        <p style="white-space:pre-wrap;">${data.content}</p>
+                    </div>
+                    <div style="text-align:right; margin-top:20px;">
+                        <button class="btn btn-primary" onclick="this.closest('.modal-overlay').classList.remove('active')">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            // Create temporary modal for viewing notice
+            let viewModal = document.getElementById('viewNoticeModal');
+            if (!viewModal) {
+                viewModal = document.createElement('div');
+                viewModal.id = 'viewNoticeModal';
+                viewModal.className = 'modal-overlay';
+                viewModal.innerHTML = `<div class="modal" style="max-width:700px;">${modalContent}</div>`;
+                document.body.appendChild(viewModal);
+            } else {
+                viewModal.querySelector('.modal').innerHTML = modalContent;
+            }
+            viewModal.classList.add('active');
+        }
+        
+        async function deleteNotice(noticeId) {
+            if (!confirm('Are you sure you want to delete this notice?')) return;
+            
+            if (!supabaseClient) {
+                showToast('Database connection unavailable', 'error');
+                return;
+            }
+            
+            // Soft delete by setting is_active to false
+            const { error } = await supabaseClient
+                .from('notices')
+                .update({ is_active: false })
+                .eq('id', noticeId);
+            
+            if (error) {
+                console.error('Error deleting notice:', error);
+                showToast('Failed to delete notice', 'error');
+                return;
+            }
+            
+            showToast('Notice deleted successfully', 'success');
+            loadNotices(); // Reload notices
         }
     </script>
 </body>
