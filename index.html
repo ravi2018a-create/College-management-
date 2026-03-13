@@ -635,7 +635,7 @@
                     <div class="stat-card"><div class="icon orange"><i class="fas fa-user-check"></i></div><div class="info"><h4 id="occupiedRoomsCount">0</h4><p>Occupied</p></div></div>
                 </div>
                 <div class="card">
-                    <div class="card-header"><h3>Hostels</h3></div>
+                    <div class="card-header"><h3>Hostels</h3><button id="addHostelBtn" class="btn btn-primary btn-sm" onclick="openHostelModal()" style="display:none;"><i class="fas fa-plus"></i> Add Hostel</button></div>
                     <div class="table-container">
                         <table>
                             <thead><tr><th>Name</th><th>Type</th><th>Total Rooms</th><th>Occupied</th><th>Vacant</th><th>Warden</th></tr></thead>
@@ -851,6 +851,65 @@
         </div>
     </div>
 
+    <!-- Hostel Modal -->
+    <div id="hostelModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="hostelModalTitle">Add Hostel</h3>
+                <button class="modal-close" onclick="closeModal('hostelModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="hostelForm" class="modal-form">
+                    <input type="hidden" id="hostelId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Hostel Name <span style="color:red;">*</span></label>
+                            <input type="text" id="hostelName" required placeholder="Enter hostel name">
+                        </div>
+                        <div class="form-group">
+                            <label>Type <span style="color:red;">*</span></label>
+                            <select id="hostelType" required>
+                                <option value="">Select Type</option>
+                                <option value="Boys">Boys</option>
+                                <option value="Girls">Girls</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Rooms <span style="color:red;">*</span></label>
+                            <input type="number" id="hostelTotalRooms" required min="1" placeholder="e.g., 100">
+                        </div>
+                        <div class="form-group">
+                            <label>Fee per Month (₹)</label>
+                            <input type="number" id="hostelFee" min="0" placeholder="e.g., 15000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Warden Name</label>
+                            <input type="text" id="hostelWardenName" placeholder="e.g., Mr. Rajesh Kumar">
+                        </div>
+                        <div class="form-group">
+                            <label>Warden Contact</label>
+                            <input type="tel" id="hostelWardenContact" placeholder="e.g., 9876543210">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Facilities</label>
+                            <textarea id="hostelFacilities" rows="3" placeholder="e.g., AC Rooms, WiFi, Mess, Gym, Laundry"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('hostelModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveHostel()">Save Hostel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast"><i class="fas fa-check-circle"></i><span id="toastMessage">Success!</span></div>
 
@@ -882,12 +941,14 @@
             chairman: {
                 modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
                 canEdit: ['students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
+                buttons: { addStudentBtn: true, addTeacherBtn: true, addBookBtn: true, addHostelBtn: true }
                 canDelete: ['students', 'teachers', 'library', 'notices'],
                 dataScope: 'all' // Can see all data
             },
             principal: {
                 modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
                 canEdit: ['students', 'teachers', 'admission', 'hostel', 'notices'],
+                buttons: { addStudentBtn: true, addTeacherBtn: true, addBookBtn: false, addHostelBtn: true }
                 canDelete: ['students', 'notices'],
                 dataScope: 'all'
             },
@@ -925,7 +986,8 @@
                 modules: ['dashboard', 'hostel', 'students', 'notices'],
                 canEdit: ['hostel', 'notices'],
                 canDelete: [],
-                dataScope: 'all'
+                dataScope: 'all',
+                buttons: { addHostelBtn: true }
             },
             admission_staff: {
                 modules: ['dashboard', 'admission', 'students', 'notices'],

@@ -28,50 +28,39 @@ async function loadHostelData() {
 
 // Update hostel statistics
 function updateHostelStats() {
-    const boysHostels = currentHostels.filter(h => h.type === 'Boys');
-    const girlsHostels = currentHostels.filter(h => h.type === 'Girls');
+    const totalHostels = currentHostels.length;
+    const totalRooms = currentHostels.reduce((sum, h) => sum + (h.total_rooms || 0), 0);
+    const totalOccupied = currentHostels.reduce((sum, h) => sum + (h.occupied || 0), 0);
     
-    const boysCountEl = document.getElementById('boysHostelCount');
-    const boysStudEl = document.getElementById('boysStudentCount');
-    const girlsCountEl = document.getElementById('girlsHostelCount');
-    const girlsStudEl = document.getElementById('girlsStudentCount');
+    // Update statistics cards
+    const totalHostelsEl = document.getElementById('totalHostelsCount');
+    const totalRoomsEl = document.getElementById('totalRoomsCount');
+    const occupiedRoomsEl = document.getElementById('occupiedRoomsCount');
     
-    if (boysCountEl) boysCountEl.textContent = boysHostels.length;
-    if (boysStudEl) boysStudEl.textContent = boysHostels.reduce((sum, h) => sum + (h.occupied || 0), 0);
-    if (girlsCountEl) girlsCountEl.textContent = girlsHostels.length;
-    if (girlsStudEl) girlsStudEl.textContent = girlsHostels.reduce((sum, h) => sum + (h.occupied || 0), 0);
+    if (totalHostelsEl) totalHostelsEl.textContent = totalHostels;
+    if (totalRoomsEl) totalRoomsEl.textContent = totalRooms;
+    if (occupiedRoomsEl) occupiedRoomsEl.textContent = totalOccupied;
 }
 
 // Display hostel data
 function displayHostelData(hostels) {
-    const table = document.getElementById('hostelsTable');
+    const table = document.getElementById('hostelTableBody');
     
     if (hostels.length > 0) {
-        table.innerHTML = hostels.map(hostel => `
+        table.innerHTML = hostels.map(hostel => {
+            const vacant = hostel.total_rooms - (hostel.occupied || 0);
+            return `
             <tr>
                 <td>${hostel.name}</td>
                 <td><span class="status-badge ${hostel.type === 'Boys' ? 'active' : 'approved'}">${hostel.type}</span></td>
-                <td>${hostel.totalRooms}</td>
-                <td>${hostel.occupied}/${hostel.totalRooms}</td>
-                <td>${hostel.warden}</td>
-                <td>${hostel.contact}</td>
-                <td>
-                    <div class="action-btns">
-                        <button class="action-btn view" onclick="viewHostel('${hostel.id}')" title="View">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-btn edit" onclick="editHostel('${hostel.id}')" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteHostel('${hostel.id}')" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+                <td>${hostel.total_rooms}</td>
+                <td>${hostel.occupied || 0}</td>
+                <td>${vacant}</td>
+                <td>${hostel.warden_name || 'Not Assigned'}<br><small style="color: #666;">${hostel.warden_contact || ''}</small></td>
+            </tr>`;
+        }).join('');
     } else {
-        table.innerHTML = '<tr><td colspan="7" class="text-center">No hostels found</td></tr>';
+        table.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No hostels found</td></tr>';
     }
 }
 
@@ -106,46 +95,30 @@ function displayAllocationData(allocations) {
 
 // Open hostel modal
 function openHostelModal(hostelId = null) {
-    const title = hostelId ? 'Edit Hostel' : 'Add Hostel';
-    const content = `
-        <form id="hostelForm" class="modal-form">
-            <div class="form-group">
-                <label for="hostelName">Hostel Name</label>
-                <input type="text" id="hostelName" required placeholder="Enter hostel name">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="hostelType">Type</label>
-                    <select id="hostelType" required>
-                        <option value="">Select Type</option>
-                        <option value="Boys">Boys Hostel</option>
-                        <option value="Girls">Girls Hostel</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="hostelRooms">Total Rooms</label>
-                    <input type="number" id="hostelRooms" min="1" required placeholder="Number of rooms">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="hostelWarden">Warden Name</label>
-                <input type="text" id="hostelWarden" required placeholder="Warden name">
-            </div>
-            <div class="form-group">
-                <label for="hostelContact">Warden Contact</label>
-                <input type="tel" id="hostelContact" required placeholder="10-digit number">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Save Hostel
-                </button>
-            </div>
-        </form>
-    `;
+    // Clear form
+    document.getElementById('hostelForm').reset();
+    document.getElementById('hostelId').value = hostelId || '';
     
-    openModal(title, content);
-    document.getElementById('hostelForm').addEventListener('submit', handleHostelSubmit);
+    // Set modal title
+    const title = hostelId ? 'Edit Hostel' : 'Add Hostel';
+    document.getElementById('hostelModalTitle').textContent = title;
+    
+    // If editing, populate form with existing data
+    if (hostelId) {
+        const hostel = currentHostels.find(h => h.id === parseInt(hostelId));
+        if (hostel) {
+            document.getElementById('hostelName').value = hostel.name || '';
+            document.getElementById('hostelType').value = hostel.type || '';
+            document.getElementById('hostelTotalRooms').value = hostel.total_rooms || '';
+            document.getElementById('hostelWardenName').value = hostel.warden_name || '';
+            document.getElementById('hostelWardenContact').value = hostel.warden_contact || '';
+            document.getElementById('hostelFacilities').value = hostel.facilities || '';
+            document.getElementById('hostelFee').value = hostel.fee_per_month || '';
+        }
+    }
+    
+    // Open the modal
+    document.getElementById('hostelModal').classList.add('active');
 }
 
 // Handle hostel submission
@@ -367,6 +340,69 @@ function deleteHostel(id) {
 // Edit allocation
 function editAllocation(id) {
     showToast('Edit allocation: ' + id);
+}
+
+// Save hostel (Add/Edit)
+async function saveHostel() {
+    const form = document.getElementById('hostelForm');
+    const hostelId = document.getElementById('hostelId').value;
+    
+    const hostelData = {
+        name: document.getElementById('hostelName').value.trim(),
+        type: document.getElementById('hostelType').value,
+        total_rooms: parseInt(document.getElementById('hostelTotalRooms').value),
+        warden_name: document.getElementById('hostelWardenName').value.trim() || null,
+        warden_contact: document.getElementById('hostelWardenContact').value.trim() || null,
+        facilities: document.getElementById('hostelFacilities').value.trim() || null,
+        fee_per_month: document.getElementById('hostelFee').value ? parseInt(document.getElementById('hostelFee').value) : null,
+        occupied: 0
+    };
+
+    // Validation
+    if (!hostelData.name) {
+        showToast('Please enter hostel name', 'error');
+        return;
+    }
+    
+    if (!hostelData.type) {
+        showToast('Please select hostel type', 'error');
+        return;
+    }
+    
+    if (!hostelData.total_rooms || hostelData.total_rooms < 1) {
+        showToast('Please enter valid number of rooms', 'error');
+        return;
+    }
+
+    try {
+        let result;
+        if (hostelId) {
+            // Update existing hostel
+            result = await window.CMS_CONFIG.supabase
+                .from('hostels')
+                .update(hostelData)
+                .eq('id', hostelId);
+        } else {
+            // Add new hostel
+            result = await window.CMS_CONFIG.supabase
+                .from('hostels')
+                .insert([hostelData]);
+        }
+
+        if (result.error) {
+            console.error('Error saving hostel:', result.error);
+            showToast('Error saving hostel: ' + result.error.message, 'error');
+            return;
+        }
+
+        showToast(hostelId ? 'Hostel updated successfully!' : 'Hostel added successfully!', 'success');
+        closeModal('hostelModal');
+        loadHostelData(); // Reload the data
+        
+    } catch (error) {
+        console.error('Error saving hostel:', error);
+        showToast('Error saving hostel', 'error');
+    }
 }
 
 // Deallocate room
