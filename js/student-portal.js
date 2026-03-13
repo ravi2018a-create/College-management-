@@ -1626,7 +1626,9 @@ async function requestHostel(hostelName, hostelType) {
         if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
             const requestData = {
                 student_id: currentStudent.student_id,
+                student_name: currentStudent.name || currentStudent.student_name || '',
                 hostel_name: hostelName,
+                room_type: hostelType || null,
                 request_date: new Date().toISOString(),
                 status: 'pending'
             };
@@ -1637,7 +1639,7 @@ async function requestHostel(hostelName, hostelType) {
 
             // If table doesn't have expected columns, retry with minimal data
             if (error && error.code === 'PGRST204') {
-                const minData = { student_id: currentStudent.student_id, hostel_name: hostelName, status: 'pending' };
+                const minData = { student_id: currentStudent.student_id, student_name: currentStudent.name || '', hostel_name: hostelName, status: 'pending' };
                 const retry = await window.CMS_CONFIG.supabase.from('hostel_requests').insert(minData);
                 error = retry.error;
             }
