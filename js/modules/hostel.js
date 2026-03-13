@@ -3,6 +3,7 @@
 // Live data storage
 let currentHostels = [];
 let currentAllocations = [];
+let currentHostelRequests = [];
 
 // Load hostel data
 async function loadHostelData() {
@@ -18,6 +19,9 @@ async function loadHostelData() {
         displayHostelData(currentHostels);
         displayAllocationData(currentAllocations);
         updateHostelStats();
+        
+        // Also load hostel requests
+        loadHostelRequests();
     } catch (err) {
         console.error('Error loading hostel data:', err);
         displayHostelData([]);
@@ -662,5 +666,160 @@ async function deallocateRoom(id) {
     } catch (error) {
         console.error('Error deallocating room:', error);
         showToast('Error deallocating room: ' + error.message, 'error');
+    }
+}
+
+// ========== HOSTEL REQUESTS MANAGEMENT ==========
+
+// Load hostel requests from database
+async function loadHostelRequests() {
+    try {
+        const { data, error } = await window.CMS_CONFIG.supabase
+            .from('hostel_requests')
+            .select('*')
+            .order('request_date', { ascending: false });
+        
+        if (error) throw error;
+        
+        currentHostelRequests = data || [];
+        
+        // Update pending count
+        const pendingCount = currentHostelRequests.filter(r => r.status === 'pending').length;
+        const pendingEl = document.getElementById('pendingRequestsCount');
+        if (pendingEl) pendingEl.textContent = pendingCount;
+        
+        // Display with current filter
+        filterHostelRequests();
+    } catch (err) {
+        console.error('Error loading hostel requests:', err);
+        const tbody = document.getElementById('hostelRequestsTableBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);">Error loading requests</td></tr>';
+        }
+    }
+}
+
+// Filter and display hostel requests
+function filterHostelRequests() {
+    const filterEl = document.getElementById('requestStatusFilter');
+    const filter = filterEl ? filterEl.value : 'pending';
+    
+    let filtered = currentHostelRequests;
+    if (filter !== 'all') {
+        filtered = currentHostelRequests.filter(r => r.status === filter);
+    }
+    
+    displayHostelRequests(filtered);
+}
+
+// Display hostel requests in table
+function displayHostelRequests(requests) {
+    const tbody = document.getElementById('hostelRequestsTableBody');
+    if (!tbody) return;
+    
+    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    const canManage = currentUser.role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(currentUser.role);
+    
+    if (requests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);">No hostel requests found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = requests.map(req => {
+        const statusColors = {
+            'pending': '#ffa502',
+            'approved': '#2ed573',
+            'rejected': '#ff4757',
+            'cancelled': '#a4b0be'
+        };
+        const statusColor = statusColors[req.status] || '#a4b0be';
+        const requestDate = req.request_date ? new Date(req.request_date).toLocaleDateString('en-IN') : 'N/A';
+        
+        let actionBtns = '';
+        if (canManage && req.status === 'pending') {
+            actionBtns = `
+                <div class="action-btns" style="display:flex;gap:4px;">
+                    <button class="action-btn" onclick="approveHostelRequest('${req.id}')" title="Approve" style="color:#2ed573;border:1px solid #2ed573;border-radius:4px;padding:4px 8px;background:white;cursor:pointer;">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="action-btn" onclick="rejectHostelRequest('${req.id}')" title="Reject" style="color:#ff4757;border:1px solid #ff4757;border-radius:4px;padding:4px 8px;background:white;cursor:pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>`;
+        } else if (req.status === 'approved') {
+            actionBtns = `<small style="color:#888;">By: ${req.reviewed_by || 'Admin'}</small>`;
+        } else if (req.status === 'rejected') {
+            actionBtns = `<small style="color:#888;">By: ${req.reviewed_by || 'Admin'}</small>`;
+        } else {
+            actionBtns = '-';
+        }
+        
+        return `
+            <tr>
+                <td>${req.student_name || 'N/A'}<br><small style="color:#888;">${req.student_email || ''}</small></td>
+                <td>${req.student_id || 'N/A'}</td>
+                <td>${req.department || 'N/A'}</td>
+                <td>${req.hostel_name || 'N/A'}</td>
+                <td><span class="status-badge ${req.hostel_type === 'Boys' ? 'active' : 'approved'}">${req.hostel_type || 'N/A'}</span></td>
+                <td>${requestDate}</td>
+                <td><span style="background:${statusColor};color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">${(req.status || 'pending').toUpperCase()}</span></td>
+                <td>${actionBtns}</td>
+            </tr>`;
+    }).join('');
+}
+
+// Approve hostel request
+async function approveHostelRequest(requestId) {
+    if (!confirm('Approve this hostel request? The student will be notified.')) return;
+    
+    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    
+    try {
+        const { error } = await window.CMS_CONFIG.supabase
+            .from('hostel_requests')
+            .update({
+                status: 'approved',
+                reviewed_by: currentUser.name || currentUser.email || 'Admin',
+                reviewed_date: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', requestId);
+        
+        if (error) throw error;
+        
+        showToast('Hostel request approved successfully!', 'success');
+        loadHostelRequests();
+    } catch (err) {
+        console.error('Error approving request:', err);
+        showToast('Error approving request: ' + err.message, 'error');
+    }
+}
+
+// Reject hostel request
+async function rejectHostelRequest(requestId) {
+    const reason = prompt('Reason for rejection (optional):');
+    if (reason === null) return; // User clicked cancel
+    
+    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    
+    try {
+        const { error } = await window.CMS_CONFIG.supabase
+            .from('hostel_requests')
+            .update({
+                status: 'rejected',
+                remarks: reason || 'Rejected by admin',
+                reviewed_by: currentUser.name || currentUser.email || 'Admin',
+                reviewed_date: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', requestId);
+        
+        if (error) throw error;
+        
+        showToast('Hostel request rejected.', 'success');
+        loadHostelRequests();
+    } catch (err) {
+        console.error('Error rejecting request:', err);
+        showToast('Error rejecting request: ' + err.message, 'error');
     }
 }

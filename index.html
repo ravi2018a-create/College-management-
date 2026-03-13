@@ -633,6 +633,7 @@
                     <div class="stat-card"><div class="icon blue"><i class="fas fa-building"></i></div><div class="info"><h4 id="totalHostelsCount">0</h4><p>Total Hostels</p></div></div>
                     <div class="stat-card"><div class="icon green"><i class="fas fa-bed"></i></div><div class="info"><h4 id="totalRoomsCount">0</h4><p>Total Rooms</p></div></div>
                     <div class="stat-card"><div class="icon orange"><i class="fas fa-user-check"></i></div><div class="info"><h4 id="occupiedRoomsCount">0</h4><p>Occupied</p></div></div>
+                    <div class="stat-card"><div class="icon red" style="background:rgba(255,107,107,0.15);"><i class="fas fa-clipboard-list" style="color:#ff6b6b;"></i></div><div class="info"><h4 id="pendingRequestsCount">0</h4><p>Pending Requests</p></div></div>
                 </div>
                 <div class="card">
                     <div class="card-header"><h3>Hostels</h3><button id="addHostelBtn" class="btn btn-primary btn-sm" onclick="openHostelModal()" style="display:none;"><i class="fas fa-plus"></i> Add Hostel</button></div>
@@ -652,6 +653,28 @@
                             <thead><tr><th>Student Name</th><th>Student ID</th><th>Hostel</th><th>Room No</th><th>Allocation Date</th><th>Actions</th></tr></thead>
                             <tbody id="allocationTable">
                                 <tr><td colspan="6" style="text-align:center; color:var(--gray);">Loading allocations...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Student Hostel Requests</h3>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <select id="requestStatusFilter" onchange="filterHostelRequests()" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;font-size:13px;">
+                                <option value="all">All Requests</option>
+                                <option value="pending" selected>Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <button class="btn btn-sm" onclick="loadHostelRequests()" style="background:#f0f0f0;color:#333;"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Student</th><th>ID</th><th>Department</th><th>Hostel</th><th>Type</th><th>Request Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="hostelRequestsTableBody">
+                                <tr><td colspan="8" style="text-align:center; color:var(--gray);">Loading requests...</td></tr>
                             </tbody>
                         </table>
                     </div>
