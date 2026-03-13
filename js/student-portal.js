@@ -249,13 +249,15 @@ function switchModule(moduleName) {
     });
 
     // Hide all modules
-    document.querySelectorAll('.module-content').forEach(module => {
+    document.querySelectorAll('.module').forEach(module => {
+        module.classList.remove('active');
         module.style.display = 'none';
     });
 
     // Show selected module
     const selectedModule = document.getElementById(moduleName + 'Module');
     if (selectedModule) {
+        selectedModule.classList.add('active');
         selectedModule.style.display = 'block';
     }
 
@@ -266,13 +268,21 @@ function switchModule(moduleName) {
         'library': 'Library',
         'hostel': 'Hostel',
         'scholarship': 'Scholarships',
-        'notices': 'Notices'
+        'notices': 'Notices',
+        'staff': 'Staff Directory'
     };
     
-    const moduleTitle = document.getElementById('moduleTitle');
-    if (moduleTitle) {
-        moduleTitle.textContent = titles[moduleName] || 'Dashboard';
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) {
+        pageTitle.textContent = titles[moduleName] || 'Dashboard';
     }
+
+    // Scroll to top of content area
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
 }
 
 // Load All Module Data
