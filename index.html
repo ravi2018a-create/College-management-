@@ -522,18 +522,50 @@
             <!-- Departments Module -->
             <div id="departmentsModule" class="module-content">
                 <div class="card">
-                    <div class="card-header"><h3>All Departments</h3></div>
+                    <div class="card-header">
+                        <h3>All Departments</h3>
+                    </div>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>Code</th><th>Name</th><th>HOD</th><th>Teachers</th><th>Students</th><th>Established</th></tr></thead>
-                            <tbody>
-                                <tr><td>CS</td><td>Computer Science</td><td>Dr. Anil Kumar</td><td>22</td><td>320</td><td>1995</td></tr>
-                                <tr><td>AIML</td><td>AI & Machine Learning</td><td>Dr. Priya Mehta</td><td>18</td><td>280</td><td>2020</td></tr>
-                                <tr><td>ECE</td><td>Electronics & Communication</td><td>Dr. Rajesh Sharma</td><td>25</td><td>350</td><td>1990</td></tr>
-                                <tr><td>EE</td><td>Electrical Engineering</td><td>Dr. Sunita Verma</td><td>20</td><td>300</td><td>1988</td></tr>
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>HOD</th>
+                                    <th>Teachers</th>
+                                    <th>Students</th>
+                                    <th>Established</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="departmentsTableBody">
+                                <tr><td colspan="7" style="text-align: center;">Loading departments...</td></tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- Edit HOD Modal -->
+            <div id="editHODModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal" onclick="closeEditHODModal()">&times;</span>
+                    <h2>Edit Head of Department</h2>
+                    <form id="editHODForm">
+                        <input type="hidden" id="editDeptCode">
+                        <div class="form-group">
+                            <label>Department</label>
+                            <input type="text" id="editDeptName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>HOD Name</label>
+                            <input type="text" id="editHODName" required placeholder="Enter HOD name">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Update HOD</button>
+                            <button type="button" class="btn" onclick="closeEditHODModal()">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -1338,6 +1370,11 @@
                 loadChainData();
             }
             
+            // Load departments when switching to departments module
+            if (moduleName === 'departments') {
+                loadDepartments();
+            }
+            
             // Load notices when switching to notices module
             if (moduleName === 'notices') {
                 loadNotices();
@@ -1963,6 +2000,93 @@
             showToast('Notice deleted successfully', 'success');
             loadNotices(); // Reload notices
         }
+
+        // ============================================
+        // DEPARTMENTS MANAGEMENT
+        // ============================================
+
+        async function loadDepartments() {
+            if (!supabaseClient) return;
+
+            const { data, error } = await supabaseClient
+                .from('departments')
+                .select('*')
+                .order('code');
+
+            if (error) {
+                console.error('Error loading departments:', error);
+                document.getElementById('departmentsTableBody').innerHTML = 
+                    '<tr><td colspan="7" style="text-align: center; color: red;">Failed to load departments</td></tr>';
+                return;
+            }
+
+            const tbody = document.getElementById('departmentsTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No departments found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(dept => `
+                <tr>
+                    <td>${dept.code || ''}</td>
+                    <td>${dept.name || ''}</td>
+                    <td>${dept.hod || 'Not Assigned'}</td>
+                    <td>${dept.total_teachers || 0}</td>
+                    <td>${dept.total_students || 0}</td>
+                    <td>${dept.established || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="openEditHODModal('${dept.code}', '${dept.name}', '${dept.hod || ''}')">
+                            <i class="fas fa-edit"></i> Edit HOD
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openEditHODModal(code, name, hod) {
+            document.getElementById('editDeptCode').value = code;
+            document.getElementById('editDeptName').value = name;
+            document.getElementById('editHODName').value = hod;
+            document.getElementById('editHODModal').classList.add('active');
+        }
+
+        function closeEditHODModal() {
+            document.getElementById('editHODModal').classList.remove('active');
+            document.getElementById('editHODForm').reset();
+        }
+
+        // Handle HOD edit form submission
+        document.getElementById('editHODForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const code = document.getElementById('editDeptCode').value;
+            const hodName = document.getElementById('editHODName').value.trim();
+            
+            if (!hodName) {
+                showToast('Please enter HOD name', 'error');
+                return;
+            }
+
+            if (!supabaseClient) {
+                showToast('Database connection unavailable', 'error');
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from('departments')
+                .update({ hod: hodName })
+                .eq('code', code);
+
+            if (error) {
+                console.error('Error updating HOD:', error);
+                showToast('Failed to update HOD', 'error');
+                return;
+            }
+
+            showToast('HOD updated successfully', 'success');
+            closeEditHODModal();
+            loadDepartments(); // Reload departments
+        });
     </script>
 </body>
 </html>
