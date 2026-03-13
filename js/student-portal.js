@@ -1714,24 +1714,55 @@ async function loadHostelRequests() {
         }
         
         if (requests.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hostel requests yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hostel requests yet</td></tr>';
             return;
         }
         
         tbody.innerHTML = requests.map(req => {
             const statusClass = req.status === 'approved' ? 'active' : req.status === 'rejected' ? 'inactive' : 'pending';
             const roomInfo = req.status === 'approved' ? (req.remarks || 'Allocated') : '-';
+            const actionBtn = req.status === 'pending' ? 
+                `<button class="btn btn-sm" onclick="cancelHostelRequest('${req.id}')" style="background:#ff4757;color:white;padding:4px 12px;border:none;border-radius:4px;cursor:pointer;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>` : '-';
             return `
             <tr>
                 <td>${formatDate(req.request_date)}</td>
                 <td>${req.hostel_name}</td>
                 <td>${roomInfo}</td>
                 <td><span class="status-badge ${statusClass}" style="text-transform:capitalize;">${req.status}</span></td>
+                <td>${actionBtn}</td>
             </tr>`;
         }).join('');
     } catch (error) {
         console.error('Error loading hostel requests:', error);
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Error loading requests</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Error loading requests</td></tr>';
+    }
+}
+
+// Cancel hostel request
+async function cancelHostelRequest(requestId) {
+    if (!confirm('Are you sure you want to cancel this hostel request?')) {
+        return;
+    }
+    
+    try {
+        const { error } = await window.CMS_CONFIG.supabase
+            .from('hostel_requests')
+            .update({
+                status: 'cancelled',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', requestId);
+        
+        if (error) throw error;
+        
+        showToast('Hostel request cancelled successfully', 'success');
+        loadHostelRequests();
+        loadHostelOptions(); // Refresh to check if can request again
+    } catch (error) {
+        console.error('Error cancelling request:', error);
+        showToast('Error cancelling request', 'error');
     }
 }
 

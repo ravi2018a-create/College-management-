@@ -647,7 +647,13 @@
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-header"><h3>Room Allocations</h3><button id="allocateRoomBtn" class="btn btn-primary btn-sm" onclick="openAllocationModal()" style="display:none;"><i class="fas fa-bed"></i> Allocate Room</button></div>
+                    <div class="card-header">
+                        <h3>Room Allocations</h3>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="text" id="allocationSearchInput" placeholder="Search student..." onkeyup="searchAllocations()" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;font-size:13px;width:200px;">
+                            <button id="allocateRoomBtn" class="btn btn-primary btn-sm" onclick="openAllocationModal()" style="display:none;"><i class="fas fa-bed"></i> Allocate Room</button>
+                        </div>
+                    </div>
                     <div class="table-container">
                         <table>
                             <thead><tr><th>Student Name</th><th>Student ID</th><th>Hostel</th><th>Room No</th><th>Allocation Date</th><th>Actions</th></tr></thead>

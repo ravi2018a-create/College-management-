@@ -142,6 +142,9 @@ function displayHostelData(hostels) {
                 ${canEdit ? `
                 <td>
                     <div class="action-btns">
+                        <button class="action-btn" onclick="viewHostelStudents('${hostel.id}')" title="View Students" style="color:#0984e3;">
+                            <i class="fas fa-users"></i>
+                        </button>
                         <button class="action-btn edit" onclick="editHostel('${hostel.id}')" title="Edit Hostel">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -187,6 +190,33 @@ function displayAllocationData(allocations) {
     } else {
         table.innerHTML = '<tr><td colspan="6" class="text-center">No allocations found</td></tr>';
     }
+}
+
+// Search/filter allocations
+function searchAllocations() {
+    const searchInput = document.getElementById('allocationSearchInput');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        displayAllocationData(currentAllocations);
+        return;
+    }
+    
+    const filtered = currentAllocations.filter(alloc => {
+        const studentName = (alloc.student_name || alloc.studentName || '').toLowerCase();
+        const studentId = (alloc.student_id || alloc.studentId || '').toLowerCase();
+        const hostelName = (alloc.hostel_name || alloc.hostelName || '').toLowerCase();
+        const roomNo = (alloc.room_no || alloc.roomNo || '').toLowerCase();
+        
+        return studentName.includes(searchTerm) || 
+               studentId.includes(searchTerm) || 
+               hostelName.includes(searchTerm) || 
+               roomNo.includes(searchTerm);
+    });
+    
+    displayAllocationData(filtered);
 }
 
 // Open hostel modal
@@ -359,6 +389,26 @@ async function handleAllocationSubmit(e) {
     }
     
     try {
+        // Check if student already has an allocation
+        const existingAlloc = currentAllocations.find(a => 
+            a.student_id.toLowerCase() === allocationData.student_id.toLowerCase()
+        );
+        
+        if (existingAlloc) {
+            showToast(`Student ${allocationData.student_id} is already allocated to ${existingAlloc.hostel_name}, Room ${existingAlloc.room_no}`, 'error');
+            return;
+        }
+        
+        // Check for duplicate room number in same hostel
+        const duplicateRoom = currentAllocations.find(a => 
+            a.hostel_name === hostelName && 
+            a.room_no.toLowerCase() === allocationData.room_no.toLowerCase()
+        );
+        
+        if (duplicateRoom) {
+            showToast(`Room ${allocationData.room_no} in ${hostelName} is already allocated to ${duplicateRoom.student_name}`, 'error');
+            return;
+        }
         // Insert allocation record
         const { error: allocError } = await window.CMS_CONFIG.supabase
             .from('hostel_allocations')
@@ -454,6 +504,62 @@ function viewHostel(id) {
     document.getElementById('hostelModal').classList.add('active');
 }
 
+// View all students in a specific hostel
+function viewHostelStudents(hostelId) {
+    const hostel = currentHostels.find(h => String(h.id) === String(hostelId));
+    if (!hostel) {
+        showToast('Hostel not found', 'error');
+        return;
+    }
+    
+    const students = currentAllocations.filter(a => a.hostel_id === hostel.id || a.hostel_name === hostel.name);
+    
+    const studentsHtml = students.length > 0 ? `
+        <table class="table" style="margin-top:15px;">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Student ID</th>
+                    <th>Room No</th>
+                    <th>Since</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${students.map(s => `
+                    <tr>
+                        <td>${s.student_name}</td>
+                        <td>${s.student_id}</td>
+                        <td><strong>${s.room_no}</strong></td>
+                        <td>${formatDate(s.allocation_date)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    ` : '<p style="text-align:center;color:#888;padding:20px;">No students allocated yet</p>';
+    
+    const content = `
+        <div class="hostel-students" style="padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i class="fas ${hostel.type === 'Boys' ? 'fa-male' : 'fa-female'}" 
+                   style="font-size: 48px; color: ${hostel.type === 'Boys' ? '#0984e3' : '#e84393'};"></i>
+                <h4 style="margin-top: 10px;">${hostel.name}</h4>
+                <p style="color:#666;">Occupied: ${students.length} / ${hostel.total_rooms} rooms</p>
+            </div>
+            ${studentsHtml}
+        </div>
+    `;
+    
+    // Use the existing hostel modal
+    document.getElementById('hostelModalTitle').textContent = 'Students in ' + hostel.name;
+    const modalBody = document.getElementById('hostelModal').querySelector('.modal-body');
+    modalBody.innerHTML = content;
+    const modalFooter = document.getElementById('hostelModal').querySelector('.modal-footer');
+    modalFooter.innerHTML = `
+        <button type="button" class="btn btn-secondary" onclick="closeHostelDetailsModal()">Close</button>
+    `;
+    document.getElementById('hostelModal').classList.add('active');
+}
+
 // Close hostel details modal and restore form
 function closeHostelDetailsModal() {
     document.getElementById('hostelModal').classList.remove('active');
@@ -501,7 +607,137 @@ async function deleteHostel(id) {
 
 // Edit allocation
 function editAllocation(id) {
-    showToast('Edit allocation: ' + id);
+    const allocation = currentAllocations.find(a => String(a.id) === String(id));
+    if (!allocation) {
+        showToast('Allocation not found', 'error');
+        return;
+    }
+    
+    const availableHostels = currentHostels.filter(h => 
+        h.name === allocation.hostel_name || (h.total_rooms - (h.occupied || 0)) > 0
+    );
+    
+    // Use the existing hostel modal but change its content
+    document.getElementById('hostelModalTitle').textContent = 'Edit Room Allocation';
+    const modalBody = document.getElementById('hostelModal').querySelector('.modal-body');
+    modalBody.innerHTML = `
+        <form id="editAllocationForm" class="modal-form">
+            <input type="hidden" id="editAllocId" value="${allocation.id}">
+            <input type="hidden" id="editOldHostelId" value="${allocation.hostel_id}">
+            <div class="form-group">
+                <label for="editAllocStudentId">Student ID</label>
+                <input type="text" id="editAllocStudentId" value="${allocation.student_id}" readonly style="background:#f5f5f5;">
+            </div>
+            <div class="form-group">
+                <label for="editAllocStudentName">Student Name</label>
+                <input type="text" id="editAllocStudentName" value="${allocation.student_name}" readonly style="background:#f5f5f5;">
+            </div>
+            <div class="form-group">
+                <label for="editAllocHostel">Select Hostel <span style="color:red;">*</span></label>
+                <select id="editAllocHostel" required>
+                    ${availableHostels.map(h => 
+                        `<option value="${h.id}" data-name="${h.name}" ${h.id === allocation.hostel_id ? 'selected' : ''}>${h.name} (Available: ${h.total_rooms - (h.occupied || 0)})</option>`
+                    ).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editAllocRoom">Room Number <span style="color:red;">*</span></label>
+                <input type="text" id="editAllocRoom" value="${allocation.room_no}" required placeholder="e.g., A-101">
+            </div>
+            <div class="form-group">
+                <label for="editAllocDate">Allocation Date</label>
+                <input type="date" id="editAllocDate" value="${allocation.allocation_date}" required>
+            </div>
+        </form>
+    `;
+    
+    // Update footer buttons
+    const modalFooter = document.getElementById('hostelModal').querySelector('.modal-footer');
+    modalFooter.innerHTML = `
+        <button type="button" class="btn" onclick="closeEditAllocationModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditAllocation()">
+            <i class="fas fa-save"></i> Update Allocation
+        </button>
+    `;
+    
+    document.getElementById('hostelModal').classList.add('active');
+}
+
+// Close edit allocation modal
+function closeEditAllocationModal() {
+    document.getElementById('hostelModal').classList.remove('active');
+    restoreHostelModal();
+}
+
+// Submit edit allocation
+async function submitEditAllocation() {
+    const allocId = document.getElementById('editAllocId').value;
+    const oldHostelId = parseInt(document.getElementById('editOldHostelId').value);
+    const newHostelId = parseInt(document.getElementById('editAllocHostel').value);
+    const hostelSelect = document.getElementById('editAllocHostel');
+    const hostelName = hostelSelect.options[hostelSelect.selectedIndex].dataset.name;
+    const roomNo = document.getElementById('editAllocRoom').value.trim();
+    const allocationDate = document.getElementById('editAllocDate').value;
+    
+    if (!roomNo) {
+        showToast('Please enter room number', 'error');
+        return;
+    }
+    
+    try {
+        // Check for duplicate room in the same hostel (excluding current allocation)
+        const duplicateRoom = currentAllocations.find(a => 
+            String(a.id) !== String(allocId) &&
+            a.hostel_name === hostelName && 
+            a.room_no.toLowerCase() === roomNo.toLowerCase()
+        );
+        
+        if (duplicateRoom) {
+            showToast(`Room ${roomNo} in ${hostelName} is already allocated to ${duplicateRoom.student_name}`, 'error');
+            return;
+        }
+        
+        // Update allocation
+        const { error: updateError } = await window.CMS_CONFIG.supabase
+            .from('hostel_allocations')
+            .update({
+                hostel_id: newHostelId,
+                hostel_name: hostelName,
+                room_no: roomNo,
+                allocation_date: allocationDate
+            })
+            .eq('id', allocId);
+        
+        if (updateError) throw updateError;
+        
+        // If hostel changed, update occupied counts
+        if (oldHostelId !== newHostelId) {
+            // Decrease old hostel
+            const oldHostel = currentHostels.find(h => h.id === oldHostelId);
+            if (oldHostel) {
+                await window.CMS_CONFIG.supabase
+                    .from('hostels')
+                    .update({ occupied: Math.max(0, (oldHostel.occupied || 0) - 1) })
+                    .eq('id', oldHostelId);
+            }
+            
+            // Increase new hostel
+            const newHostel = currentHostels.find(h => h.id === newHostelId);
+            if (newHostel) {
+                await window.CMS_CONFIG.supabase
+                    .from('hostels')
+                    .update({ occupied: (newHostel.occupied || 0) + 1 })
+                    .eq('id', newHostelId);
+            }
+        }
+        
+        showToast('Allocation updated successfully!', 'success');
+        closeEditAllocationModal();
+        loadHostelData();
+    } catch (err) {
+        console.error('Error updating allocation:', err);
+        showToast('Error updating allocation: ' + err.message, 'error');
+    }
 }
 
 // Save hostel (Add/Edit)
@@ -773,7 +1009,7 @@ async function approveHostelRequest(requestId) {
     
     try {
         // 1. Update request status to approved
-        const { error: updateError } = await window.CMS_CONFIG.supabase
+        const { error: requestUpdateError } = await window.CMS_CONFIG.supabase
             .from('hostel_requests')
             .update({
                 status: 'approved',
@@ -784,37 +1020,67 @@ async function approveHostelRequest(requestId) {
             })
             .eq('id', requestId);
         
-        if (updateError) throw updateError;
+        if (requestUpdateError) throw requestUpdateError;
         
-        // 2. Create hostel allocation record
+        // 2. Find the hostel and check availability
         const hostel = currentHostels.find(h => h.name === request.hostel_name);
+        if (!hostel) {
+            throw new Error(`Hostel "${request.hostel_name}" not found`);
+        }
+        
+        const currentOccupied = hostel.occupied || 0;
+        const availableRooms = hostel.total_rooms - currentOccupied;
+        
+        if (availableRooms <= 0) {
+            throw new Error(`No rooms available in ${request.hostel_name}`);
+        }
+        
+        // 3. Check for duplicate room and existing allocation
+        const duplicateRoom = currentAllocations.find(a => 
+            a.hostel_name === request.hostel_name && 
+            a.room_no.toLowerCase() === roomNo.trim().toLowerCase()
+        );
+        
+        if (duplicateRoom) {
+            throw new Error(`Room ${roomNo.trim()} is already allocated to ${duplicateRoom.student_name}`);
+        }
+        
+        const existingAlloc = currentAllocations.find(a => 
+            a.student_id.toLowerCase() === request.student_id.toLowerCase()
+        );
+        
+        if (existingAlloc) {
+            throw new Error(`Student already has allocation in ${existingAlloc.hostel_name}, Room ${existingAlloc.room_no}`);
+        }
+        
+        // 4. Create hostel allocation record
         const allocationData = {
             student_id: request.student_id,
             student_name: request.student_name,
             hostel_name: request.hostel_name,
+            hostel_id: hostel.id,
             room_no: roomNo.trim(),
             allocation_date: new Date().toISOString().split('T')[0]
         };
-        if (hostel) {
-            allocationData.hostel_id = hostel.id;
-        }
         
         const { error: allocError } = await window.CMS_CONFIG.supabase
             .from('hostel_allocations')
             .insert([allocationData]);
         
         if (allocError) {
-            console.warn('Allocation insert warning:', allocError.message);
-            // Don't fail the whole operation - request is already approved
+            throw new Error('Failed to create allocation: ' + allocError.message);
         }
         
-        // 3. Update hostel occupied count
-        if (hostel) {
-            const newOccupied = (hostel.occupied || 0) + 1;
-            await window.CMS_CONFIG.supabase
-                .from('hostels')
-                .update({ occupied: newOccupied })
-                .eq('id', hostel.id);
+        // 5. Update hostel occupied count (reduce available seats by 1)
+        const newOccupied = currentOccupied + 1;
+        const { error: hostelUpdateError } = await window.CMS_CONFIG.supabase
+            .from('hostels')
+            .update({ occupied: newOccupied })
+            .eq('id', hostel.id);
+        
+        if (hostelUpdateError) {
+            console.error('Failed to update hostel occupied count:', hostelUpdateError);
+            // Log but don't fail - allocation is already created
         }
         
         showToast(`Approved! Room ${roomNo.trim()} at ${request.hostel_name} allocated to ${request.student_name}`, 'success');
