@@ -858,27 +858,39 @@ function renderMyDeptStaff(teachers, deptInfo) {
 
     // Sort by designation (HOD first)
     const sorted = [...teachers].sort((a, b) => {
-        if (a.designation?.toLowerCase().includes('hod')) return -1;
-        if (b.designation?.toLowerCase().includes('hod')) return 1;
+        const isHodA = a.designation?.toLowerCase().includes('hod') || 
+                      a.designation?.toLowerCase().includes('head of department') ||
+                      a.designation?.toLowerCase().includes('department head');
+        const isHodB = b.designation?.toLowerCase().includes('hod') || 
+                      b.designation?.toLowerCase().includes('head of department') ||
+                      b.designation?.toLowerCase().includes('department head');
+        
+        if (isHodA) return -1;
+        if (isHodB) return 1;
         if (a.designation?.toLowerCase().includes('professor')) return -1;
         if (b.designation?.toLowerCase().includes('professor')) return 1;
         return 0;
     });
 
-    container.innerHTML = sorted.map(teacher => `
-        <div class="staff-card ${teacher.designation?.toLowerCase().includes('hod') ? 'hod' : ''}">
+    container.innerHTML = sorted.map(teacher => {
+        const isHod = teacher.designation?.toLowerCase().includes('hod') || 
+                     teacher.designation?.toLowerCase().includes('head of department') ||
+                     teacher.designation?.toLowerCase().includes('department head');
+        
+        return `
+        <div class="staff-card ${isHod ? 'hod' : ''}">
             <div class="staff-avatar">
                 <i class="fas fa-chalkboard-teacher"></i>
             </div>
             <div class="staff-info">
-                <h4>${teacher.name}</h4>
+                <h4>${teacher.name} ${isHod ? '<span class="hod-badge"><i class="fas fa-crown"></i> HOD</span>' : ''}</h4>
                 <p class="staff-role">${teacher.designation || 'Faculty'}</p>
                 <p class="staff-contact"><i class="fas fa-envelope"></i> ${teacher.email || 'N/A'}</p>
                 <p class="staff-contact"><i class="fas fa-phone"></i> ${teacher.contact || 'N/A'}</p>
                 <p class="staff-subjects">${teacher.subjects || ''}</p>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 // Render Other Departments Staff
@@ -906,8 +918,15 @@ function renderOtherDeptStaff(teachers, departments) {
 
         // Sort - HOD first
         const sorted = [...deptTeachers].sort((a, b) => {
-            if (a.designation?.toLowerCase().includes('hod')) return -1;
-            if (b.designation?.toLowerCase().includes('hod')) return 1;
+            const isHodA = a.designation?.toLowerCase().includes('hod') || 
+                          a.designation?.toLowerCase().includes('head of department') ||
+                          a.designation?.toLowerCase().includes('department head');
+            const isHodB = b.designation?.toLowerCase().includes('hod') || 
+                          b.designation?.toLowerCase().includes('head of department') ||
+                          b.designation?.toLowerCase().includes('department head');
+            
+            if (isHodA) return -1;
+            if (isHodB) return 1;
             return 0;
         });
 
@@ -915,18 +934,23 @@ function renderOtherDeptStaff(teachers, departments) {
             <div class="dept-section">
                 <h4 class="dept-header"><i class="fas fa-building"></i> ${deptName}</h4>
                 <div class="staff-grid">
-                    ${sorted.map(teacher => `
-                        <div class="staff-card ${teacher.designation?.toLowerCase().includes('hod') ? 'hod' : ''}">
+                    ${sorted.map(teacher => {
+                        const isHod = teacher.designation?.toLowerCase().includes('hod') || 
+                                     teacher.designation?.toLowerCase().includes('head of department') ||
+                                     teacher.designation?.toLowerCase().includes('department head');
+                        
+                        return `
+                        <div class="staff-card ${isHod ? 'hod' : ''}">
                             <div class="staff-avatar">
                                 <i class="fas fa-chalkboard-teacher"></i>
                             </div>
                             <div class="staff-info">
-                                <h4>${teacher.name}</h4>
+                                <h4>${teacher.name} ${isHod ? '<span class="hod-badge"><i class="fas fa-crown"></i> HOD</span>' : ''}</h4>
                                 <p class="staff-role">${teacher.designation || 'Faculty'}</p>
                                 <p class="staff-contact"><i class="fas fa-envelope"></i> ${teacher.email || 'N/A'}</p>
                             </div>
-                        </div>
-                    `).join('')}
+                        </div>`;
+                    }).join('')}
                 </div>
             </div>
         `;
