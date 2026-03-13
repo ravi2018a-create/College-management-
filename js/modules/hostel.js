@@ -45,6 +45,7 @@ function updateHostelStats() {
 // Display hostel data
 function displayHostelData(hostels) {
     const table = document.getElementById('hostelTableBody');
+    if (!table) return;
     
     if (hostels.length > 0) {
         table.innerHTML = hostels.map(hostel => {
@@ -86,6 +87,7 @@ function displayHostelData(hostels) {
 // Display allocation data
 function displayAllocationData(allocations) {
     const table = document.getElementById('allocationTable');
+    if (!table) return;
     
     if (allocations.length > 0) {
         table.innerHTML = allocations.map(alloc => `
