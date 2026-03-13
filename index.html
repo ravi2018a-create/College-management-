@@ -941,14 +941,14 @@
             chairman: {
                 modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
                 canEdit: ['students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
-                buttons: { addStudentBtn: true, addTeacherBtn: true, addBookBtn: true, addHostelBtn: true }
+                buttons: { addStudentBtn: true, addTeacherBtn: true, addBookBtn: true, addHostelBtn: true },
                 canDelete: ['students', 'teachers', 'library', 'notices'],
                 dataScope: 'all' // Can see all data
             },
             principal: {
                 modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts', 'notices'],
                 canEdit: ['students', 'teachers', 'admission', 'hostel', 'notices'],
-                buttons: { addStudentBtn: true, addTeacherBtn: true, addBookBtn: false, addHostelBtn: true }
+                buttons: { addStudentBtn: true, addTeacherBtn: true, addBookBtn: false, addHostelBtn: true },
                 canDelete: ['students', 'notices'],
                 dataScope: 'all'
             },
