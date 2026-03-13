@@ -1122,7 +1122,7 @@
                 statsGrid.innerHTML = `
                     <div class="stat-card">
                         <div class="icon purple"><i class="fas fa-book"></i></div>
-                        <div class="info"><h4 id="totalBooks">0</h4><p>Library Books</p></div>
+                        <div class="info"><h4 id="librarianTotalBooks">0</h4><p>Library Books</p></div>
                     </div>
                     <div class="stat-card">
                         <div class="icon blue"><i class="fas fa-book-reader"></i></div>
@@ -1146,7 +1146,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="icon blue"><i class="fas fa-user-graduate"></i></div>
-                        <div class="info"><h4 id="totalStudents">0</h4><p>Total Students</p></div>
+                        <div class="info"><h4 id="accountantTotalStudents">0</h4><p>Total Students</p></div>
                     </div>
                 `;
             } else if (role === 'hostel_warden') {
@@ -1363,17 +1363,57 @@
         async function updateDashboardStats() {
             if (!supabaseClient) return;
             
-            // Count students
-            const { count: studentCount } = await supabaseClient.from('students').select('*', { count: 'exact', head: true });
-            document.getElementById('totalStudents').textContent = studentCount || 0;
-            
-            // Count teachers
-            const { count: teacherCount } = await supabaseClient.from('teachers').select('*', { count: 'exact', head: true });
-            document.getElementById('totalTeachers').textContent = teacherCount || 0;
-            
-            // Count books
-            const { count: bookCount } = await supabaseClient.from('library_books').select('*', { count: 'exact', head: true });
-            document.getElementById('totalBooks').textContent = bookCount || 0;
+            try {
+                // Count students
+                const { count: studentCount } = await supabaseClient.from('students').select('*', { count: 'exact', head: true });
+                const totalStudentsEl = document.getElementById('totalStudents');
+                if (totalStudentsEl) totalStudentsEl.textContent = studentCount || 0;
+                
+                // Also update role-specific student counts
+                const totalHostelStudentsEl = document.getElementById('totalHostelStudents');
+                if (totalHostelStudentsEl) totalHostelStudentsEl.textContent = studentCount || 0;
+                
+                const accountantTotalStudentsEl = document.getElementById('accountantTotalStudents');
+                if (accountantTotalStudentsEl) accountantTotalStudentsEl.textContent = studentCount || 0;
+                
+                // Count teachers
+                const { count: teacherCount } = await supabaseClient.from('teachers').select('*', { count: 'exact', head: true });
+                const totalTeachersEl = document.getElementById('totalTeachers');
+                if (totalTeachersEl) totalTeachersEl.textContent = teacherCount || 0;
+                
+                // Count departments
+                const { count: deptCount } = await supabaseClient.from('departments').select('*', { count: 'exact', head: true });
+                const totalDepartmentsEl = document.getElementById('totalDepartments');
+                if (totalDepartmentsEl) totalDepartmentsEl.textContent = deptCount || 0;
+                
+                // Count books
+                const { count: bookCount } = await supabaseClient.from('library_books').select('*', { count: 'exact', head: true });
+                const totalBooksEl = document.getElementById('totalBooks');
+                if (totalBooksEl) totalBooksEl.textContent = bookCount || 0;
+                
+                // Also update librarian-specific book count
+                const librarianTotalBooksEl = document.getElementById('librarianTotalBooks');
+                if (librarianTotalBooksEl) librarianTotalBooksEl.textContent = bookCount || 0;
+                
+                // Count issued books for librarian role
+                const { count: issuedCount } = await supabaseClient.from('book_issues').select('*', { count: 'exact', head: true }).eq('status', 'Active');
+                const issuedBooksEl = document.getElementById('issuedBooks');
+                if (issuedBooksEl) issuedBooksEl.textContent = issuedCount || 0;
+                
+                // Set overdue books (placeholder for now)
+                const overdueBooksEl = document.getElementById('overdueBooks');
+                if (overdueBooksEl) overdueBooksEl.textContent = '0'; // TODO: Calculate actual overdue
+                
+                // Set financial data (placeholder for accountant role)
+                const totalCollectionEl = document.getElementById('totalCollection');
+                if (totalCollectionEl) totalCollectionEl.textContent = '₹0'; // TODO: Calculate from fees
+                
+                const pendingFeesEl = document.getElementById('pendingFees');
+                if (pendingFeesEl) pendingFeesEl.textContent = '₹0'; // TODO: Calculate pending
+                
+            } catch (error) {
+                console.error('Error updating dashboard stats:', error);
+            }
         }
 
         // Navigation
