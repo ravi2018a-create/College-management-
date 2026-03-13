@@ -645,6 +645,17 @@
                         </table>
                     </div>
                 </div>
+                <div class="card">
+                    <div class="card-header"><h3>Room Allocations</h3><button id="allocateRoomBtn" class="btn btn-primary btn-sm" onclick="openAllocationModal()" style="display:none;"><i class="fas fa-bed"></i> Allocate Room</button></div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Student Name</th><th>Student ID</th><th>Hostel</th><th>Room No</th><th>Allocation Date</th><th>Actions</th></tr></thead>
+                            <tbody id="allocationTable">
+                                <tr><td colspan="6" style="text-align:center; color:var(--gray);">Loading allocations...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- Accounts Module -->
@@ -1076,6 +1087,10 @@
             const addHostelBtn = document.getElementById('addHostelBtn');
             if (addHostelBtn) {
                 addHostelBtn.style.display = canEdit('hostel') ? 'inline-flex' : 'none';
+            }
+            const allocateRoomBtn = document.getElementById('allocateRoomBtn');
+            if (allocateRoomBtn) {
+                allocateRoomBtn.style.display = canEdit('hostel') ? 'inline-flex' : 'none';
             }
             
             const addNoticeBtn = document.getElementById('addNoticeBtn');
