@@ -49,6 +49,8 @@ function displayHostelData(hostels) {
     if (hostels.length > 0) {
         table.innerHTML = hostels.map(hostel => {
             const vacant = hostel.total_rooms - (hostel.occupied || 0);
+            const wardenName = hostel.warden_name || hostel.warden || 'Not Assigned';
+            const wardenContact = hostel.warden_contact || hostel.contact || '';
             // Check if current user can edit/delete hostels
             const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
             const canEdit = currentUser.role && ['admin', 'chairman', 'principal', 'hostel_warden'].includes(currentUser.role);
@@ -60,7 +62,7 @@ function displayHostelData(hostels) {
                 <td>${hostel.total_rooms}</td>
                 <td>${hostel.occupied || 0}</td>
                 <td>${vacant}</td>
-                <td>${hostel.warden_name || 'Not Assigned'}<br><small style="color: #666;">${hostel.warden_contact || ''}</small></td>
+                <td>${wardenName}<br><small style="color: #666;">${wardenContact}</small></td>
                 ${canEdit ? `
                 <td>
                     <div class="action-btns">
@@ -127,8 +129,8 @@ function openHostelModal(hostelId = null) {
             document.getElementById('hostelName').value = hostel.name || '';
             document.getElementById('hostelType').value = hostel.type || '';
             document.getElementById('hostelTotalRooms').value = hostel.total_rooms || '';
-            document.getElementById('hostelWardenName').value = hostel.warden_name || '';
-            document.getElementById('hostelWardenContact').value = hostel.warden_contact || '';
+            document.getElementById('hostelWardenName').value = hostel.warden_name || hostel.warden || '';
+            document.getElementById('hostelWardenContact').value = hostel.warden_contact || hostel.contact || '';
             document.getElementById('hostelFacilities').value = hostel.facilities || '';
             document.getElementById('hostelFee').value = hostel.fee_per_month || '';
         }
@@ -374,19 +376,24 @@ function editAllocation(id) {
 
 // Save hostel (Add/Edit)
 async function saveHostel() {
-    const form = document.getElementById('hostelForm');
     const hostelId = document.getElementById('hostelId').value;
+    const existingHostel = hostelId ? currentHostels.find(h => String(h.id) === String(hostelId)) : null;
+    const wardenName = document.getElementById('hostelWardenName').value.trim() || null;
+    const wardenContact = document.getElementById('hostelWardenContact').value.trim() || null;
     
     const hostelData = {
         name: document.getElementById('hostelName').value.trim(),
         type: document.getElementById('hostelType').value,
         total_rooms: parseInt(document.getElementById('hostelTotalRooms').value),
-        warden_name: document.getElementById('hostelWardenName').value.trim() || null,
-        warden_contact: document.getElementById('hostelWardenContact').value.trim() || null,
+        warden_name: wardenName,
+        warden_contact: wardenContact,
         facilities: document.getElementById('hostelFacilities').value.trim() || null,
-        fee_per_month: document.getElementById('hostelFee').value ? parseInt(document.getElementById('hostelFee').value) : null,
-        occupied: 0
+        fee_per_month: document.getElementById('hostelFee').value ? parseInt(document.getElementById('hostelFee').value) : null
     };
+
+    if (!hostelId) {
+        hostelData.occupied = 0;
+    }
 
     // Validation
     if (!hostelData.name) {
@@ -404,19 +411,58 @@ async function saveHostel() {
         return;
     }
 
-    try {
-        let result;
+    if (hostelId && existingHostel && existingHostel.occupied > hostelData.total_rooms) {
+        showToast('Total rooms cannot be less than currently occupied rooms', 'error');
+        return;
+    }
+
+    if (hostelId && existingHostel && typeof existingHostel.occupied === 'number') {
+        hostelData.occupied = existingHostel.occupied;
+    }
+
+    const persistHostel = async (payload) => {
         if (hostelId) {
-            // Update existing hostel
-            result = await window.CMS_CONFIG.supabase
+            return await window.CMS_CONFIG.supabase
                 .from('hostels')
-                .update(hostelData)
+                .update(payload)
                 .eq('id', hostelId);
-        } else {
-            // Add new hostel
-            result = await window.CMS_CONFIG.supabase
-                .from('hostels')
-                .insert([hostelData]);
+        }
+
+        return await window.CMS_CONFIG.supabase
+            .from('hostels')
+            .insert([payload]);
+    };
+
+    const mapSchemaFallbackPayload = (payload, errorMessage) => {
+        const nextPayload = { ...payload };
+
+        if (errorMessage.includes("'facilities'")) {
+            delete nextPayload.facilities;
+        }
+
+        if (errorMessage.includes("'fee_per_month'")) {
+            delete nextPayload.fee_per_month;
+        }
+
+        if (errorMessage.includes("'warden_name'")) {
+            delete nextPayload.warden_name;
+            nextPayload.warden = wardenName;
+        }
+
+        if (errorMessage.includes("'warden_contact'")) {
+            delete nextPayload.warden_contact;
+            nextPayload.contact = wardenContact;
+        }
+
+        return nextPayload;
+    };
+
+    try {
+        let result = await persistHostel(hostelData);
+
+        if (result.error && result.error.code === 'PGRST204') {
+            const fallbackPayload = mapSchemaFallbackPayload(hostelData, result.error.message || '');
+            result = await persistHostel(fallbackPayload);
         }
 
         if (result.error) {
