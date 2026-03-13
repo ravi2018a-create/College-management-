@@ -1073,18 +1073,23 @@ async function approveHostelRequest(requestId) {
         
         // 5. Update hostel occupied count (reduce available seats by 1)
         const newOccupied = currentOccupied + 1;
-        const { error: hostelUpdateError } = await window.CMS_CONFIG.supabase
+        const { data: hostelUpdateData, error: hostelUpdateError } = await window.CMS_CONFIG.supabase
             .from('hostels')
             .update({ occupied: newOccupied })
-            .eq('id', hostel.id);
+            .eq('id', hostel.id)
+            .select();
         
         if (hostelUpdateError) {
             console.error('Failed to update hostel occupied count:', hostelUpdateError);
-            // Log but don't fail - allocation is already created
+            showToast('Warning: Allocation created but hostel count not updated. Please refresh.', 'warning');
+        } else {
+            console.log('Hostel occupied count updated:', hostelUpdateData);
         }
         
-        showToast(`Approved! Room ${roomNo.trim()} at ${request.hostel_name} allocated to ${request.student_name}`, 'success');
-        loadHostelData(); // Reload everything
+        showToast(`Approved! Room ${roomNo.trim()} at ${request.hostel_name} allocated to ${request.student_name}. Refreshing...`, 'success');
+        
+        // Force reload data from database
+        await loadHostelData();
     } catch (err) {
         console.error('Error approving request:', err);
         showToast('Error approving request: ' + err.message, 'error');
