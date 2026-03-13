@@ -578,7 +578,7 @@
             <!-- Students Module -->
             <div id="studentsModule" class="module-content">
                 <div class="card">
-                    <div class="card-header"><h3>Students</h3><button class="btn btn-primary btn-sm" onclick="openModal('studentModal')"><i class="fas fa-plus"></i> Add Student</button></div>
+                    <div class="card-header"><h3>Students</h3><button id="addStudentBtn" class="btn btn-primary btn-sm" onclick="openModal('studentModal')" style="display:none;"><i class="fas fa-plus"></i> Add Student</button></div>
                     <div class="toolbar">
                         <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search students..."></div>
                         <select class="filter-select"><option value="">All Departments</option><option value="CS">Computer Science</option><option value="AIML">AI & ML</option><option value="ECE">Electronics</option><option value="EE">Electrical</option></select>
@@ -597,7 +597,7 @@
             <!-- Teachers Module -->
             <div id="teachersModule" class="module-content">
                 <div class="card">
-                    <div class="card-header"><h3>Teachers</h3><button class="btn btn-primary btn-sm" onclick="openModal('teacherModal')"><i class="fas fa-plus"></i> Add Teacher</button></div>
+                    <div class="card-header"><h3>Teachers</h3><button id="addTeacherBtn" class="btn btn-primary btn-sm" onclick="openModal('teacherModal')" style="display:none;"><i class="fas fa-plus"></i> Add Teacher</button></div>
                     <div class="table-container">
                         <table>
                             <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Subjects</th><th>Contact</th><th>Actions</th></tr></thead>
@@ -618,7 +618,7 @@
                     <div class="stat-card"><div class="icon red"><i class="fas fa-exclamation-triangle"></i></div><div class="info"><h4 id="overdueBooksCount">0</h4><p>Overdue</p></div></div>
                 </div>
                 <div class="card">
-                    <div class="card-header"><h3>Book Catalog</h3><button class="btn btn-primary btn-sm" onclick="openModal('bookModal')"><i class="fas fa-plus"></i> Add Book</button></div>
+                    <div class="card-header"><h3>Book Catalog</h3><button id="addBookBtn" class="btn btn-primary btn-sm" onclick="openModal('bookModal')" style="display:none;"><i class="fas fa-plus"></i> Add Book</button></div>
                     <div class="table-container">
                         <table>
                             <thead><tr><th>Book ID</th><th>Title</th><th>Author</th><th>Subject</th><th>ISBN</th><th>Total</th><th>Actions</th></tr></thead>
@@ -802,16 +802,75 @@
         // Configuration
         const FEE_PASSWORD = 'admin123';
         const DEMO_USERS = [
-            { email: 'chairman@college.edu', password: 'chairman123', name: 'Dr. Robert Smith', role: 'chairman' },
-            { email: 'principal@college.edu', password: 'principal123', name: 'Dr. Sarah Johnson', role: 'principal' },
-            { email: 'registrar@college.edu', password: 'registrar123', name: 'Mr. Suresh Kumar', role: 'registrar' },
-            { email: 'hod.cs@college.edu', password: 'hod123', name: 'Dr. Anil Kumar', role: 'hod' },
-            { email: 'teacher@college.edu', password: 'teacher123', name: 'Prof. Meera Singh', role: 'teacher' },
-            { email: 'library@college.edu', password: 'librarian123', name: 'Mrs. Anjali Sharma', role: 'librarian' },
-            { email: 'accounts@college.edu', password: 'accountant123', name: 'Mr. Ramesh Gupta', role: 'accountant' },
-            { email: 'warden@college.edu', password: 'warden123', name: 'Mr. Vijay Singh', role: 'hostel_warden' },
-            { email: 'admissions@college.edu', password: 'admission123', name: 'Mrs. Priya Iyer', role: 'admission_staff' }
+            { email: 'chairman@college.edu', password: 'chairman123', name: 'Dr. Robert Smith', role: 'chairman', department: null },
+            { email: 'principal@college.edu', password: 'principal123', name: 'Dr. Sarah Johnson', role: 'principal', department: null },
+            { email: 'registrar@college.edu', password: 'registrar123', name: 'Mr. Suresh Kumar', role: 'registrar', department: null },
+            { email: 'hod.cs@college.edu', password: 'hod123', name: 'Dr. Anil Kumar', role: 'hod', department: 'Computer Science' },
+            { email: 'teacher@college.edu', password: 'teacher123', name: 'Prof. Meera Singh', role: 'teacher', department: 'Computer Science' },
+            { email: 'library@college.edu', password: 'librarian123', name: 'Mrs. Anjali Sharma', role: 'librarian', department: null },
+            { email: 'accounts@college.edu', password: 'accountant123', name: 'Mr. Ramesh Gupta', role: 'accountant', department: null },
+            { email: 'warden@college.edu', password: 'warden123', name: 'Mr. Vijay Singh', role: 'hostel_warden', department: null },
+            { email: 'admissions@college.edu', password: 'admission123', name: 'Mrs. Priya Iyer', role: 'admission_staff', department: null }
         ];
+
+        // Role-Based Access Control Permissions Matrix
+        const ROLE_PERMISSIONS = {
+            chairman: {
+                modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts'],
+                canEdit: ['students', 'teachers', 'library', 'hostel', 'accounts'],
+                canDelete: ['students', 'teachers', 'library'],
+                dataScope: 'all' // Can see all data
+            },
+            principal: {
+                modules: ['dashboard', 'chain', 'departments', 'registrar', 'admission', 'students', 'teachers', 'library', 'hostel', 'accounts'],
+                canEdit: ['students', 'teachers', 'admission', 'hostel'],
+                canDelete: ['students'],
+                dataScope: 'all'
+            },
+            registrar: {
+                modules: ['dashboard', 'chain', 'departments', 'students', 'teachers'],
+                canEdit: ['students', 'teachers'],
+                canDelete: ['students'],
+                dataScope: 'all'
+            },
+            hod: {
+                modules: ['dashboard', 'departments', 'students', 'teachers'],
+                canEdit: ['students', 'teachers'],
+                canDelete: [],
+                dataScope: 'department' // Only their department
+            },
+            teacher: {
+                modules: ['dashboard', 'students', 'library'],
+                canEdit: [],
+                canDelete: [],
+                dataScope: 'department'
+            },
+            librarian: {
+                modules: ['dashboard', 'library', 'students'],
+                canEdit: ['library'],
+                canDelete: ['library'],
+                dataScope: 'all'
+            },
+            accountant: {
+                modules: ['dashboard', 'accounts', 'students'],
+                canEdit: ['accounts'],
+                canDelete: [],
+                dataScope: 'all'
+            },
+            hostel_warden: {
+                modules: ['dashboard', 'hostel', 'students'],
+                canEdit: ['hostel'],
+                canDelete: [],
+                dataScope: 'all'
+            },
+            admission_staff: {
+                modules: ['dashboard', 'admission', 'students'],
+                canEdit: ['admission', 'students'],
+                canDelete: [],
+                dataScope: 'all'
+            }
+        };
+
         let currentUser = null;
         let studentCounter = 3;
         let admissionCounter = 2;
@@ -838,7 +897,7 @@
             const user = DEMO_USERS.find(u => u.email === email && u.password === password);
             if (user) {
                 if (user.role !== role) { showToast('Invalid role for this user', 'error'); return; }
-                currentUser = { email: user.email, name: user.name, role: user.role };
+                currentUser = { email: user.email, name: user.name, role: user.role, department: user.department };
                 localStorage.setItem('cms_user', JSON.stringify(currentUser));
                 showToast('Welcome, ' + user.name + '!', 'success');
                 showDashboard();
@@ -858,9 +917,144 @@
             document.getElementById('mainDashboard').style.display = 'flex';
             document.getElementById('userName').textContent = currentUser.name;
             document.getElementById('dashboardUserName').textContent = currentUser.name;
+            applyRoleBasedAccess(); // Apply role-based permissions
             loadAllData(); // Load real data from database
             switchModule('dashboard');
         }
+
+        // Apply role-based access control
+        function applyRoleBasedAccess() {
+            if (!currentUser || !currentUser.role) return;
+            
+            const permissions = ROLE_PERMISSIONS[currentUser.role];
+            if (!permissions) return;
+
+            // Filter navigation items based on allowed modules
+            document.querySelectorAll('.nav-item').forEach(navItem => {
+                const module = navItem.dataset.module;
+                if (permissions.modules.includes(module)) {
+                    navItem.style.display = 'flex'; // Show allowed modules
+                } else {
+                    navItem.style.display = 'none'; // Hide restricted modules
+                }
+            });
+
+            // Show/hide Add buttons based on edit permissions
+            const addStudentBtn = document.getElementById('addStudentBtn');
+            if (addStudentBtn) {
+                addStudentBtn.style.display = canEdit('students') ? 'inline-flex' : 'none';
+            }
+            
+            const addTeacherBtn = document.getElementById('addTeacherBtn');
+            if (addTeacherBtn) {
+                addTeacherBtn.style.display = canEdit('teachers') ? 'inline-flex' : 'none';
+            }
+            
+            const addBookBtn = document.getElementById('addBookBtn');
+            if (addBookBtn) {
+                addBookBtn.style.display = canEdit('library') ? 'inline-flex' : 'none';
+            }
+
+            // Update dashboard stats visibility based on role
+            updateDashboardForRole();
+        }
+
+        // Check if current user can edit a specific module
+        function canEdit(module) {
+            if (!currentUser || !currentUser.role) return false;
+            const permissions = ROLE_PERMISSIONS[currentUser.role];
+            return permissions && permissions.canEdit.includes(module);
+        }
+
+        // Check if current user can delete from a specific module
+        function canDelete(module) {
+            if (!currentUser || !currentUser.role) return false;
+            const permissions = ROLE_PERMISSIONS[currentUser.role];
+            return permissions && permissions.canDelete.includes(module);
+        }
+
+        // Get data scope for current user
+        function getDataScope() {
+            if (!currentUser || !currentUser.role) return 'all';
+            const permissions = ROLE_PERMISSIONS[currentUser.role];
+            return permissions ? permissions.dataScope : 'all';
+        }
+
+        // Update dashboard stats based on role
+        function updateDashboardForRole() {
+            const role = currentUser.role;
+            const statsGrid = document.querySelector('.stats-grid');
+            
+            // Different stats for different roles
+            if (role === 'librarian') {
+                // Show library-focused stats
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="icon purple"><i class="fas fa-book"></i></div>
+                        <div class="info"><h4 id="totalBooks">0</h4><p>Library Books</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon blue"><i class="fas fa-book-reader"></i></div>
+                        <div class="info"><h4 id="issuedBooks">0</h4><p>Issued Books</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon orange"><i class="fas fa-clock"></i></div>
+                        <div class="info"><h4 id="overdueBooks">0</h4><p>Overdue Books</p></div>
+                    </div>
+                `;
+            } else if (role === 'accountant') {
+                // Show finance-focused stats
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="icon green"><i class="fas fa-rupee-sign"></i></div>
+                        <div class="info"><h4 id="totalCollection">₹0</h4><p>Total Collection</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon orange"><i class="fas fa-clock"></i></div>
+                        <div class="info"><h4 id="pendingFees">₹0</h4><p>Pending Fees</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon blue"><i class="fas fa-user-graduate"></i></div>
+                        <div class="info"><h4 id="totalStudents">0</h4><p>Total Students</p></div>
+                    </div>
+                `;
+            } else if (role === 'hostel_warden') {
+                // Show hostel-focused stats
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="icon blue"><i class="fas fa-hotel"></i></div>
+                        <div class="info"><h4 id="totalHostelStudents">0</h4><p>Hostel Students</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon orange"><i class="fas fa-clock"></i></div>
+                        <div class="info"><h4 id="pendingRequests">0</h4><p>Pending Requests</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon green"><i class="fas fa-check-circle"></i></div>
+                        <div class="info"><h4 id="availableRooms">0</h4><p>Available Rooms</p></div>
+                    </div>
+                `;
+            } else if (role === 'hod' || role === 'teacher') {
+                // Show department-focused stats
+                const deptName = currentUser.department || 'Department';
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="icon blue"><i class="fas fa-user-graduate"></i></div>
+                        <div class="info"><h4 id="deptStudents">0</h4><p>${deptName} Students</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon green"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="info"><h4 id="deptTeachers">0</h4><p>${deptName} Teachers</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon purple"><i class="fas fa-building"></i></div>
+                        <div class="info"><h4>1</h4><p>Department</p></div>
+                    </div>
+                `;
+            }
+            // For chairman, principal, registrar, admission_staff - keep default stats
+        }
+
 
         // Load all data from Supabase
         async function loadAllData() {
@@ -872,7 +1066,16 @@
 
         async function loadStudents() {
             if (!supabaseClient) return;
-            const { data, error } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
+            
+            // Apply department filter for HOD and Teacher roles
+            let query = supabaseClient.from('students').select('*');
+            
+            if (getDataScope() === 'department' && currentUser.department) {
+                query = query.eq('department', currentUser.department);
+            }
+            
+            const { data, error } = await query.order('created_at', { ascending: false });
+            
             if (error) {
                 console.error('Error loading students:', error);
                 return;
@@ -882,6 +1085,11 @@
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray);">No students yet. Use Admission Cell to add students.</td></tr>';
                 return;
             }
+            
+            // Check if user can edit or delete
+            const canEditStudents = canEdit('students');
+            const canDeleteStudents = canDelete('students');
+            
             tbody.innerHTML = data.map(s => `
                 <tr>
                     <td>${s.student_id}</td>
@@ -892,15 +1100,33 @@
                     <td>${s.phone || 'N/A'}</td>
                     <td class="actions">
                         <button class="btn btn-icon btn-primary" onclick="viewStudent('${s.student_id}')"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-icon btn-danger" onclick="deleteStudent('${s.student_id}')"><i class="fas fa-trash"></i></button>
+                        ${canEditStudents ? `<button class="btn btn-icon btn-success" onclick="editStudent('${s.student_id}')"><i class="fas fa-edit"></i></button>` : ''}
+                        ${canDeleteStudents ? `<button class="btn btn-icon btn-danger" onclick="deleteStudent('${s.student_id}')"><i class="fas fa-trash"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
+            
+            // Update department stats if applicable
+            if (getDataScope() === 'department') {
+                const deptStudentsCount = document.getElementById('deptStudents');
+                if (deptStudentsCount) {
+                    deptStudentsCount.textContent = data.length;
+                }
+            }
         }
 
         async function loadTeachers() {
             if (!supabaseClient) return;
-            const { data, error } = await supabaseClient.from('teachers').select('*').order('created_at', { ascending: false });
+            
+            // Apply department filter for HOD and Teacher roles
+            let query = supabaseClient.from('teachers').select('*');
+            
+            if (getDataScope() === 'department' && currentUser.department) {
+                query = query.eq('department', currentUser.department);
+            }
+            
+            const { data, error } = await query.order('created_at', { ascending: false });
+            
             if (error) {
                 console.error('Error loading teachers:', error);
                 document.getElementById('teachersTable').innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray);">No teachers added yet. Click "Add Teacher" to register.</td></tr>';
@@ -911,6 +1137,11 @@
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray);">No teachers yet. Principal/HOD can add teachers.</td></tr>';
                 return;
             }
+            
+            // Check if user can edit or delete
+            const canEditTeachers = canEdit('teachers');
+            const canDeleteTeachers = canDelete('teachers');
+            
             tbody.innerHTML = data.map(t => `
                 <tr>
                     <td>${t.teacher_id}</td>
@@ -920,11 +1151,19 @@
                     <td>${t.subjects || 'N/A'}</td>
                     <td>${t.contact || 'N/A'}</td>
                     <td class="actions">
-                        <button class="btn btn-icon btn-primary" onclick="editTeacher('${t.teacher_id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-icon btn-danger" onclick="deleteTeacher('${t.teacher_id}')"><i class="fas fa-trash"></i></button>
+                        ${canEditTeachers ? `<button class="btn btn-icon btn-primary" onclick="editTeacher('${t.teacher_id}')"><i class="fas fa-edit"></i></button>` : ''}
+                        ${canDeleteTeachers ? `<button class="btn btn-icon btn-danger" onclick="deleteTeacher('${t.teacher_id}')"><i class="fas fa-trash"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
+            
+            // Update department stats if applicable
+            if (getDataScope() === 'department') {
+                const deptTeachersCount = document.getElementById('deptTeachers');
+                if (deptTeachersCount) {
+                    deptTeachersCount.textContent = data.length;
+                }
+            }
         }
 
         async function loadBooks() {
@@ -948,6 +1187,11 @@
                 document.getElementById('overdueBooksCount').textContent = '0';
                 return;
             }
+            
+            // Check if user can edit or delete
+            const canEditLibrary = canEdit('library');
+            const canDeleteLibrary = canDelete('library');
+            
             tbody.innerHTML = data.map(b => `
                 <tr>
                     <td>${b.book_id}</td>
@@ -957,8 +1201,8 @@
                     <td>${b.isbn || 'N/A'}</td>
                     <td>${b.total_copies}</td>
                     <td class="actions">
-                        <button class="btn btn-icon btn-primary" onclick="editBook('${b.book_id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-icon btn-danger" onclick="deleteBook('${b.book_id}')"><i class="fas fa-trash"></i></button>
+                        ${canEditLibrary ? `<button class="btn btn-icon btn-primary" onclick="editBook('${b.book_id}')"><i class="fas fa-edit"></i></button>` : ''}
+                        ${canDeleteLibrary ? `<button class="btn btn-icon btn-danger" onclick="deleteBook('${b.book_id}')"><i class="fas fa-trash"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -967,10 +1211,22 @@
             const totalCopies = data.reduce((sum, b) => sum + (b.total_copies || 0), 0);
             const availableCopies = data.reduce((sum, b) => sum + (b.available_copies || b.total_copies || 0), 0);
             const issuedCopies = totalCopies - availableCopies;
-            document.getElementById('totalBooksCount').textContent = totalCopies;
-            document.getElementById('availableBooksCount').textContent = availableCopies;
-            document.getElementById('issuedBooksCount').textContent = issuedCopies;
-            document.getElementById('overdueBooksCount').textContent = '0'; // TODO: Calculate from book_issues table
+            
+            // Update stats in both default dashboard and library-specific dashboard
+            const totalBooksEl = document.getElementById('totalBooks');
+            if (totalBooksEl) totalBooksEl.textContent = totalCopies;
+            
+            const totalBooksCountEl = document.getElementById('totalBooksCount');
+            if (totalBooksCountEl) totalBooksCountEl.textContent = totalCopies;
+            
+            const availableBooksCountEl = document.getElementById('availableBooksCount');
+            if (availableBooksCountEl) availableBooksCountEl.textContent = availableCopies;
+            
+            const issuedBooksCountEl = document.getElementById('issuedBooksCount');
+            if (issuedBooksCountEl) issuedBooksCountEl.textContent = issuedCopies;
+            
+            const overdueBooksCountEl = document.getElementById('overdueBooksCount');
+            if (overdueBooksCountEl) overdueBooksCountEl.textContent = '0'; // TODO: Calculate from book_issues table
         }
 
         async function updateDashboardStats() {
