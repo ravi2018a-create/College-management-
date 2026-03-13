@@ -1386,39 +1386,28 @@ function displayDepartmentCards(departments) {
     if (!grid) return;
     
     if (!departments || departments.length === 0) {
-        grid.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 40px; color: var(--gray);"><p>No departments found</p></div>';
+        grid.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 20px; color: #95a5a6;"><p>No departments found</p></div>';
         return;
     }
     
-    const gradients = [
-        'linear-gradient(135deg, #667eea, #764ba2)',
-        'linear-gradient(135deg, #f093fb, #f5576c)',
-        'linear-gradient(135deg, #4facfe, #00f2fe)',
-        'linear-gradient(135deg, #43e97b, #38f9d7)',
-        'linear-gradient(135deg, #fa709a, #fee140)',
-        'linear-gradient(135deg, #30cfd0, #330867)'
-    ];
-    
-    grid.innerHTML = departments.map((dept, index) => `
-        <div style="background: ${gradients[index % gradients.length]}; color: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-            <div style="margin-bottom: 15px;">
-                <i class="fas fa-graduation-cap" style="font-size: 36px; opacity: 0.9;"></i>
+    grid.innerHTML = departments.map((dept) => `
+        <div style="background: white; border: 1px solid #dee2e6; border-radius: 4px; padding: 15px;">
+            <div style="border-bottom: 1px solid #e9ecef; padding-bottom: 10px; margin-bottom: 12px;">
+                <div style="font-weight: 600; color: #2c3e50; font-size: 14px; margin-bottom: 4px;">${dept.name || 'Unknown'}</div>
+                <div style="font-size: 11px; color: #6c757d;">Department Code: ${dept.code || 'N/A'}</div>
             </div>
-            <h4 style="margin-bottom: 5px; font-size: 18px;">${dept.name || 'Unknown'}</h4>
-            <p style="font-size: 12px; opacity: 0.8; margin-bottom: 15px;">Code: ${dept.code || 'N/A'}</p>
-            <div style="border-top: 1px solid rgba(255,255,255,0.3); padding-top: 15px; margin-top: 15px;">
-                <p style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">
-                    <i class="fas fa-user-tie"></i> HOD: ${dept.hod || 'Not Assigned'}
-                </p>
-                <div style="display: flex; justify-content: space-around; margin-top: 10px;">
-                    <div>
-                        <p style="font-size: 22px; font-weight: bold;" id="dept-${dept.code}-teachers">-</p>
-                        <p style="font-size: 12px; opacity: 0.9;">Teachers</p>
-                    </div>
-                    <div>
-                        <p style="font-size: 22px; font-weight: bold;" id="dept-${dept.code}-students">-</p>
-                        <p style="font-size: 12px; opacity: 0.9;">Students</p>
-                    </div>
+            <div style="margin-bottom: 10px;">
+                <div style="font-size: 11px; color: #6c757d; margin-bottom: 3px;">Head of Department</div>
+                <div style="font-size: 13px; color: #495057; font-weight: 500;">${dept.hod || 'Not Assigned'}</div>
+            </div>
+            <div style="display: flex; gap: 15px; padding-top: 10px; border-top: 1px solid #e9ecef;">
+                <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #2c3e50;" id="dept-${dept.code}-teachers">0</div>
+                    <div style="font-size: 10px; color: #6c757d; text-transform: uppercase;">Teachers</div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #2c3e50;" id="dept-${dept.code}-students">0</div>
+                    <div style="font-size: 10px; color: #6c757d; text-transform: uppercase;">Students</div>
                 </div>
             </div>
         </div>
