@@ -130,8 +130,6 @@ window.CMS_UTILS = {
     formatDate,
     generateId,
     getDepartmentName,
-    openModal,
-    closeModal,
     validateEmail,
     validatePhone,
     createTableRow,
