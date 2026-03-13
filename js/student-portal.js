@@ -1364,11 +1364,14 @@ async function loadOrganizationData() {
         
         if (!studentError && students) {
             allOrgStudents = students;
+            displayOrgStudents(students);
             
             // Update department counts with students
             if (departments) {
                 updateDepartmentCounts(departments, teachers, students);
             }
+        } else {
+            document.getElementById('studentOrgStudentsTable').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#95a5a6;">No students enrolled yet</td></tr>';
         }
     } catch (error) {
         console.error('Error loading organization data:', error);
