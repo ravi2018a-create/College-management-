@@ -1171,42 +1171,94 @@ function updateDepartmentCounts(departments, teachers, students) {
 }
 
 function displayOrgTeachers(teachers) {
-    const tbody = document.getElementById('studentOrgTeachersTable');
-    if (!tbody) return;
+    const container = document.getElementById('studentOrgTeachersTable');
+    if (!container) return;
     
     if (!teachers || teachers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No teachers enrolled yet</td></tr>';
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fas fa-user-tie" style="font-size:48px;margin-bottom:15px;opacity:0.5;"></i><p>No teachers enrolled yet</p></div>';
         return;
     }
     
-    tbody.innerHTML = teachers.map(t => `
-        <tr>
-            <td>${t.teacher_id}</td>
-            <td><strong>${t.name}</strong></td>
-            <td><span style="padding: 4px 12px; background: #e3f2fd; color: #1976d2; border-radius: 12px; font-size: 12px; font-weight: 500;">${t.department}</span></td>
-            <td>${t.designation}</td>
-            <td>${t.contact || 'N/A'}</td>
-        </tr>
+    // Convert container to block layout
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
+    container.style.gap = '20px';
+    container.style.padding = '20px';
+    
+    container.innerHTML = teachers.map(t => `
+        <div style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;" 
+             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)'" 
+             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                    <i class="fas fa-user-tie" style="color: white; font-size: 20px;"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; color: #333; font-size: 18px; font-weight: 600;">${t.name}</h4>
+                    <p style="margin: 0; color: #666; font-size: 14px;">${t.designation}</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                <span style="padding: 6px 14px; background: #e3f2fd; color: #1976d2; border-radius: 16px; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-building" style="margin-right: 5px;"></i>${t.department}
+                </span>
+                <span style="padding: 6px 14px; background: #f3e5f5; color: #7b1fa2; border-radius: 16px; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-id-badge" style="margin-right: 5px;"></i>${t.teacher_id}
+                </span>
+            </div>
+            
+            <div style="display: flex; align-items: center; color: #666; font-size: 14px;">
+                <i class="fas fa-phone" style="margin-right: 8px; color: #4caf50;"></i>
+                <span>${t.contact || 'Contact not provided'}</span>
+            </div>
+        </div>
     `).join('');
 }
 
 function displayOrgStudents(students) {
-    const tbody = document.getElementById('studentOrgStudentsTable');
-    if (!tbody) return;
+    const container = document.getElementById('studentOrgStudentsTable');
+    if (!container) return;
     
     if (!students || students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--gray);">No students enrolled yet</td></tr>';
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fas fa-user-graduate" style="font-size:48px;margin-bottom:15px;opacity:0.5;"></i><p>No students enrolled yet</p></div>';
         return;
     }
     
-    tbody.innerHTML = students.map(s => `
-        <tr>
-            <td>${s.student_id}</td>
-            <td><strong>${s.name}</strong></td>
-            <td><span style="padding: 4px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 12px; font-size: 12px; font-weight: 500;">${s.department}</span></td>
-            <td>Year ${s.year}</td>
-            <td>${s.email}</td>
-        </tr>
+    // Convert container to block layout
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
+    container.style.gap = '20px';
+    container.style.padding = '20px';
+    
+    container.innerHTML = students.map(s => `
+        <div style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;" 
+             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)'" 
+             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                    <i class="fas fa-user-graduate" style="color: white; font-size: 20px;"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; color: #333; font-size: 18px; font-weight: 600;">${s.name}</h4>
+                    <p style="margin: 0; color: #666; font-size: 14px;">Year ${s.year} Student</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                <span style="padding: 6px 14px; background: #e8f5e9; color: #2e7d32; border-radius: 16px; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-graduation-cap" style="margin-right: 5px;"></i>${s.department}
+                </span>
+                <span style="padding: 6px 14px; background: #fff3e0; color: #f57c00; border-radius: 16px; font-size: 13px; font-weight: 500;">
+                    <i class="fas fa-id-card" style="margin-right: 5px;"></i>${s.student_id}
+                </span>
+            </div>
+            
+            <div style="display: flex; align-items: center; color: #666; font-size: 14px;">
+                <i class="fas fa-envelope" style="margin-right: 8px; color: #2196f3;"></i>
+                <span style="word-break: break-all;">${s.email}</span>
+            </div>
+        </div>
     `).join('');
 }
 
