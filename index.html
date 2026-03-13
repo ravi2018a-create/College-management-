@@ -242,12 +242,15 @@
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             min-width: 200px;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
+        .org-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         .org-card.chairman { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
         .org-card.principal { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
         .org-card i { font-size: 36px; margin-bottom: 15px; }
-        .org-card h4 { font-size: 14px; opacity: 0.9; margin-bottom: 5px; }
-        .org-card h3 { font-size: 18px; }
+        .org-card h4 { font-size: 14px; opacity: 0.9; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .org-card h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; }
+        .org-card p { font-size: 13px; opacity: 0.85; margin: 0; }
 
         /* Search & Filters */
         .toolbar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -406,22 +409,110 @@
 
             <!-- Chain Management Module -->
             <div id="chainModule" class="module-content">
-                <div class="org-chart">
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h3>Organizational Hierarchy</h3>
+                        <button class="btn btn-primary btn-sm" onclick="loadChainData()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                </div>
+                
+                <div class="org-chart" style="padding: 20px; overflow-x: auto;">
+                    <!-- Level 1: Chairman -->
                     <div class="org-level">
                         <div class="org-card chairman">
                             <i class="fas fa-crown"></i>
                             <h4>Chairman</h4>
                             <h3>Dr. Robert Smith</h3>
-                            <p>9876543210</p>
+                            <p>chairman@college.edu</p>
                         </div>
                     </div>
-                    <div style="width:2px; height:40px; background:#ddd;"></div>
+                    <div style="width:2px; height:30px; background:#ddd; margin: 0 auto;"></div>
+                    
+                    <!-- Level 2: Principal -->
                     <div class="org-level">
                         <div class="org-card principal">
                             <i class="fas fa-user-tie"></i>
                             <h4>Principal</h4>
                             <h3>Dr. Sarah Johnson</h3>
-                            <p>9876543211</p>
+                            <p>principal@college.edu</p>
+                        </div>
+                    </div>
+                    <div style="width:2px; height:30px; background:#ddd; margin: 0 auto;"></div>
+                    
+                    <!-- Level 3: Departments & HODs -->
+                    <div class="card" style="margin: 20px auto; max-width: 1200px;">
+                        <div class="card-header"><h3><i class="fas fa-building"></i> Departments & HODs</h3></div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; padding: 20px;">
+                            <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                <i class="fas fa-laptop-code" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                <h4 style="margin: 10px 0 5px 0;">Computer Science</h4>
+                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Anil Kumar</p>
+                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="csTeacherCount">Loading...</p>
+                                <p style="opacity: 0.8; font-size: 12px;" id="csStudentCount">Loading...</p>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                <i class="fas fa-robot" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                <h4 style="margin: 10px 0 5px 0;">AI & ML</h4>
+                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Priya Mehta</p>
+                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="aimlTeacherCount">Loading...</p>
+                                <p style="opacity: 0.8; font-size: 12px;" id="aimlStudentCount">Loading...</p>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                <i class="fas fa-microchip" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                <h4 style="margin: 10px 0 5px 0;">Electronics</h4>
+                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Rajesh Sharma</p>
+                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="eceTeacherCount">Loading...</p>
+                                <p style="opacity: 0.8; font-size: 12px;" id="eceStudentCount">Loading...</p>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                                <i class="fas fa-bolt" style="font-size: 32px; margin-bottom: 10px;"></i>
+                                <h4 style="margin: 10px 0 5px 0;">Electrical</h4>
+                                <p style="opacity: 0.9; font-size: 14px;">HOD: Dr. Sunita Verma</p>
+                                <p style="opacity: 0.8; font-size: 12px; margin-top: 5px;" id="eeTeacherCount">Loading...</p>
+                                <p style="opacity: 0.8; font-size: 12px;" id="eeStudentCount">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Level 4: Teachers by Department -->
+                    <div class="card" style="margin: 20px auto; max-width: 1200px;">
+                        <div class="card-header"><h3><i class="fas fa-chalkboard-teacher"></i> Teachers Directory</h3></div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Subjects</th><th>Contact</th></tr></thead>
+                                <tbody id="chainTeachersTable">
+                                    <tr><td colspan="6" style="text-align:center; color:var(--gray);">Loading teachers...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Level 5: Students by Department -->
+                    <div class="card" style="margin: 20px auto; max-width: 1200px;">
+                        <div class="card-header"><h3><i class="fas fa-user-graduate"></i> Students Directory</h3></div>
+                        <div class="toolbar" style="padding: 0 20px;">
+                            <select class="filter-select" id="chainDeptFilter" onchange="filterChainStudents()">
+                                <option value="">All Departments</option>
+                                <option value="CS">Computer Science</option>
+                                <option value="AIML">AI & ML</option>
+                                <option value="ECE">Electronics</option>
+                                <option value="EE">Electrical</option>
+                            </select>
+                            <select class="filter-select" id="chainYearFilter" onchange="filterChainStudents()">
+                                <option value="">All Years</option>
+                                <option value="1">1st Year</option>
+                                <option value="2">2nd Year</option>
+                                <option value="3">3rd Year</option>
+                                <option value="4">4th Year</option>
+                            </select>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Year</th><th>Email</th><th>Phone</th></tr></thead>
+                                <tbody id="chainStudentsTable">
+                                    <tr><td colspan="6" style="text-align:center; color:var(--gray);">Loading students...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -909,6 +1000,11 @@
             if (module) module.classList.add('active');
             const titles = { 'dashboard': 'Dashboard', 'chain': 'Chain Management', 'departments': 'Departments', 'registrar': 'Registrar', 'admission': 'Admission Cell', 'students': 'Students', 'teachers': 'Teachers', 'library': 'Library', 'hostel': 'Hostel', 'accounts': 'Accounts' };
             document.getElementById('moduleTitle').textContent = titles[moduleName] || 'Dashboard';
+            
+            // Load chain data when switching to chain module
+            if (moduleName === 'chain') {
+                loadChainData();
+            }
         }
 
         // Utils
@@ -1196,6 +1292,122 @@
 
         function editBook(bookId) {
             showToast('Editing book ' + bookId + ' (Feature coming soon)', 'success');
+        }
+
+        // Chain Management Functions
+        let allChainTeachers = [];
+        let allChainStudents = [];
+
+        async function loadChainData() {
+            if (!supabaseClient) {
+                showToast('Database not connected', 'error');
+                return;
+            }
+            
+            // Load teachers
+            const { data: teachers, error: teacherError } = await supabaseClient.from('teachers').select('*').order('department', { ascending: true });
+            if (!teacherError && teachers) {
+                allChainTeachers = teachers;
+                displayChainTeachers(teachers);
+                updateDepartmentCounts(teachers, 'teacher');
+            } else {
+                document.getElementById('chainTeachersTable').innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No teachers found in database</td></tr>';
+            }
+            
+            // Load students
+            const { data: students, error: studentError } = await supabaseClient.from('students').select('*').order('department', { ascending: true });
+            if (!studentError && students) {
+                allChainStudents = students;
+                displayChainStudents(students);
+                updateDepartmentCounts(students, 'student');
+            } else {
+                document.getElementById('chainStudentsTable').innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No students found in database</td></tr>';
+            }
+        }
+
+        function displayChainTeachers(teachers) {
+            const tbody = document.getElementById('chainTeachersTable');
+            if (!teachers || teachers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No teachers enrolled yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = teachers.map(t => `
+                <tr>
+                    <td>${t.teacher_id}</td>
+                    <td><strong>${t.name}</strong></td>
+                    <td><span style="padding: 4px 12px; background: #e3f2fd; color: #1976d2; border-radius: 12px; font-size: 12px; font-weight: 500;">${t.department}</span></td>
+                    <td>${t.designation}</td>
+                    <td>${t.subjects || 'N/A'}</td>
+                    <td>${t.contact || 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayChainStudents(students) {
+            const tbody = document.getElementById('chainStudentsTable');
+            if (!students || students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--gray);">No students enrolled yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>${s.student_id}</td>
+                    <td><strong>${s.name}</strong></td>
+                    <td><span style="padding: 4px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 12px; font-size: 12px; font-weight: 500;">${s.department}</span></td>
+                    <td>Year ${s.year}</td>
+                    <td>${s.email}</td>
+                    <td>${s.phone || 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateDepartmentCounts(data, type) {
+            const deptMap = {
+                'CS': { teacher: 'csTeacherCount', student: 'csStudentCount' },
+                'AIML': { teacher: 'aimlTeacherCount', student: 'aimlStudentCount' },
+                'ECE': { teacher: 'eceTeacherCount', student: 'eceStudentCount' },
+                'EE': { teacher: 'eeTeacherCount', student: 'eeStudentCount' }
+            };
+            
+            // Count by department
+            const counts = { CS: 0, AIML: 0, ECE: 0, EE: 0 };
+            data.forEach(item => {
+                if (counts.hasOwnProperty(item.department)) {
+                    counts[item.department]++;
+                }
+            });
+            
+            // Update UI
+            Object.keys(deptMap).forEach(dept => {
+                const elementId = deptMap[dept][type];
+                const element = document.getElementById(elementId);
+                if (element) {
+                    if (type === 'teacher') {
+                        element.textContent = `${counts[dept]} Teacher${counts[dept] !== 1 ? 's' : ''}`;
+                    } else {
+                        element.textContent = `${counts[dept]} Student${counts[dept] !== 1 ? 's' : ''}`;
+                    }
+                }
+            });
+        }
+
+        function filterChainStudents() {
+            const deptFilter = document.getElementById('chainDeptFilter').value;
+            const yearFilter = document.getElementById('chainYearFilter').value;
+            
+            let filtered = [...allChainStudents];
+            
+            if (deptFilter) {
+                filtered = filtered.filter(s => s.department === deptFilter);
+            }
+            
+            if (yearFilter) {
+                filtered = filtered.filter(s => s.year === parseInt(yearFilter));
+            }
+            
+            displayChainStudents(filtered);
         }
 
         function saveFeeRecord() {
