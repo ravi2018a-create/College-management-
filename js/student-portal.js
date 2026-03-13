@@ -1626,23 +1626,21 @@ async function requestHostel(hostelName, hostelType) {
         if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
             const requestData = {
                 student_id: currentStudent.student_id,
-                student_name: currentStudent.name || currentStudent.student_name || '',
+                student_name: currentStudent.name || currentStudent.student_name || 'Unknown',
+                student_email: currentStudent.email || currentStudent.student_email || 'unknown@college.edu',
+                student_phone: currentStudent.phone || currentStudent.student_phone || null,
+                department: currentStudent.department || null,
+                year: currentStudent.year || null,
                 hostel_name: hostelName,
-                room_type: hostelType || null,
+                hostel_type: hostelType || 'Standard',
+                room_preference: null,
                 request_date: new Date().toISOString(),
                 status: 'pending'
             };
 
-            let { error } = await window.CMS_CONFIG.supabase
+            const { error } = await window.CMS_CONFIG.supabase
                 .from('hostel_requests')
                 .insert(requestData);
-
-            // If table doesn't have expected columns, retry with minimal data
-            if (error && error.code === 'PGRST204') {
-                const minData = { student_id: currentStudent.student_id, student_name: currentStudent.name || '', hostel_name: hostelName, status: 'pending' };
-                const retry = await window.CMS_CONFIG.supabase.from('hostel_requests').insert(minData);
-                error = retry.error;
-            }
             
             if (error) {
                 console.error('Error creating hostel request:', error);
