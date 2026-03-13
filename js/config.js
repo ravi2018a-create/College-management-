@@ -24,8 +24,8 @@ const TABLES = {
 const FEE_MODULE_PASSWORD = 'admin123';
 
 // Demo mode for authentication - uses demo credentials
-// Set to false only if you have created users in Supabase Auth
-const DEMO_MODE = true;
+// Set to false to use real database data
+const DEMO_MODE = false;
 
 let supabaseClient = null;
 

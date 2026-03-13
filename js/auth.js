@@ -76,38 +76,46 @@ async function handleLogin(e) {
             showToast('Invalid email or password', 'error');
         }
     } else {
-        // Supabase authentication
+        // Real database authentication (check users table)
         try {
-            const { data, error } = await window.CMS_CONFIG.supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-            
-            if (error) {
-                showToast(error.message, 'error');
-                return;
-            }
-            
-            // Get user profile
-            const { data: profile, error: profileError } = await window.CMS_CONFIG.supabase
+            const { data: user, error } = await window.CMS_CONFIG.supabase
                 .from('users')
                 .select('*')
                 .eq('email', email)
-                .single();
+                .maybeSingle();
             
-            if (profileError) {
-                console.error('Profile fetch error:', profileError);
+            if (error) {
+                console.error('Login query error:', error);
+                showToast('Login failed. Please try again.', 'error');
+                return;
+            }
+            
+            if (!user) {
+                showToast('User not found. Please register first.', 'error');
+                return;
+            }
+            
+            // Check password (simple comparison - use hashing in production!)
+            if (user.password_hash !== password) {
+                showToast('Invalid password', 'error');
+                return;
+            }
+            
+            // Check if selected role matches user's role
+            if (user.role !== role) {
+                showToast('Invalid role. Your role is: ' + user.role, 'error');
+                return;
             }
             
             currentUser = {
-                id: data.user.id,
-                email: email,
-                name: profile?.name || email.split('@')[0],
-                role: role
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role
             };
             
             localStorage.setItem('cms_user', JSON.stringify(currentUser));
-            showToast('Login successful!', 'success');
+            showToast('Welcome, ' + user.name + '!', 'success');
             showDashboard();
             
         } catch (err) {

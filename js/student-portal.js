@@ -79,8 +79,12 @@ async function handleStudentLogin(e) {
             }
 
             if (student) {
-                // For demo, accept 'student123' as password
-                if (password === 'student123') {
+                // Check password from database (password_hash field) or accept default
+                const validPassword = student.password_hash 
+                    ? (password === student.password_hash) 
+                    : (password === 'student123');
+                    
+                if (validPassword) {
                     currentStudent = student;
                     localStorage.setItem('currentStudent', JSON.stringify(student));
                     showDashboard();
@@ -90,7 +94,7 @@ async function handleStudentLogin(e) {
                     showToast('Invalid password', 'error');
                 }
             } else {
-                // Check demo students
+                // Check demo students as fallback
                 const demoStudent = getDemoStudent(email, password);
                 if (demoStudent) {
                     currentStudent = demoStudent;
@@ -99,7 +103,7 @@ async function handleStudentLogin(e) {
                     loadAllModuleData();
                     showToast('Welcome back, ' + demoStudent.name + '!', 'success');
                 } else {
-                    showToast('Student not found. Try: john.smith@college.edu / student123', 'error');
+                    showToast('Student not found. Please register first.', 'error');
                 }
             }
         } else {
@@ -244,6 +248,7 @@ function loadAllModuleData() {
     loadHostelData();
     loadScholarshipData();
     loadNoticesData();
+    loadStaffData();
 }
 
 // Load Profile Data
@@ -950,4 +955,303 @@ function showToast(message, type = 'info') {
         toast.style.animation = 'slideIn 0.3s ease reverse';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// Load Staff Directory Data
+async function loadStaffData() {
+    if (!currentStudent) return;
+
+    const myDept = currentStudent.department;
+    
+    try {
+        // Load Leadership (Chairman, Principal)
+        let leadership = [];
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
+                .from('chain_management')
+                .select('*')
+                .order('position');
+            
+            if (!error && data) {
+                leadership = data;
+            }
+        }
+        
+        if (leadership.length === 0) {
+            leadership = getDemoLeadership();
+        }
+        renderLeadership(leadership);
+
+        // Load All Teachers
+        let allTeachers = [];
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
+                .from('teachers')
+                .select('*')
+                .order('department')
+                .order('designation');
+            
+            if (!error && data) {
+                allTeachers = data;
+            }
+        }
+        
+        if (allTeachers.length === 0) {
+            allTeachers = getDemoTeachers();
+        }
+
+        // Load Departments
+        let departments = [];
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data, error } = await window.CMS_CONFIG.supabase
+                .from('departments')
+                .select('*');
+            
+            if (!error && data) {
+                departments = data;
+            }
+        }
+        
+        if (departments.length === 0) {
+            departments = getDemoDepartments();
+        }
+
+        // Separate teachers into my department and others
+        const myDeptTeachers = allTeachers.filter(t => t.department === myDept);
+        const otherTeachers = allTeachers.filter(t => t.department !== myDept);
+
+        // Update my department name
+        const myDeptInfo = departments.find(d => d.code === myDept);
+        const myDeptNameEl = document.getElementById('myDeptName');
+        if (myDeptNameEl) {
+            myDeptNameEl.textContent = myDeptInfo ? myDeptInfo.name : myDept;
+        }
+
+        // Render my department staff (including HOD)
+        renderMyDeptStaff(myDeptTeachers, myDeptInfo);
+
+        // Render other departments
+        renderOtherDeptStaff(otherTeachers, departments);
+
+        // Load and render administrative staff
+        let adminStaff = [];
+        if (window.CMS_CONFIG && window.CMS_CONFIG.supabase) {
+            const { data: users, error } = await window.CMS_CONFIG.supabase
+                .from('users')
+                .select('*')
+                .in('role', ['registrar', 'librarian', 'accountant', 'hostel_warden', 'admission_staff']);
+            
+            if (!error && users) {
+                adminStaff = users;
+            }
+        }
+        
+        if (adminStaff.length === 0) {
+            adminStaff = getDemoAdminStaff();
+        }
+        renderAdminStaff(adminStaff);
+
+    } catch (error) {
+        console.error('Error loading staff data:', error);
+        // Use demo data on error
+        renderLeadership(getDemoLeadership());
+        renderMyDeptStaff(getDemoTeachers().filter(t => t.department === myDept), null);
+        renderOtherDeptStaff(getDemoTeachers().filter(t => t.department !== myDept), getDemoDepartments());
+        renderAdminStaff(getDemoAdminStaff());
+    }
+}
+
+// Render Leadership
+function renderLeadership(leadership) {
+    const container = document.getElementById('leadershipList');
+    if (!container) return;
+
+    if (leadership.length === 0) {
+        container.innerHTML = '<p class="text-center">No leadership info available</p>';
+        return;
+    }
+
+    container.innerHTML = leadership.map(leader => `
+        <div class="staff-card leadership">
+            <div class="staff-avatar">
+                <i class="fas fa-${leader.position === 'Chairman' ? 'crown' : 'user-tie'}"></i>
+            </div>
+            <div class="staff-info">
+                <h4>${leader.name}</h4>
+                <p class="staff-role">${leader.position}</p>
+                <p class="staff-contact"><i class="fas fa-envelope"></i> ${leader.email || 'N/A'}</p>
+                <p class="staff-contact"><i class="fas fa-phone"></i> ${leader.contact || 'N/A'}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render My Department Staff
+function renderMyDeptStaff(teachers, deptInfo) {
+    const container = document.getElementById('myDeptStaff');
+    if (!container) return;
+
+    if (teachers.length === 0) {
+        container.innerHTML = '<p class="text-center">No teachers found in your department</p>';
+        return;
+    }
+
+    // Sort by designation (HOD first)
+    const sorted = [...teachers].sort((a, b) => {
+        if (a.designation?.toLowerCase().includes('hod')) return -1;
+        if (b.designation?.toLowerCase().includes('hod')) return 1;
+        if (a.designation?.toLowerCase().includes('professor')) return -1;
+        if (b.designation?.toLowerCase().includes('professor')) return 1;
+        return 0;
+    });
+
+    container.innerHTML = sorted.map(teacher => `
+        <div class="staff-card ${teacher.designation?.toLowerCase().includes('hod') ? 'hod' : ''}">
+            <div class="staff-avatar">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="staff-info">
+                <h4>${teacher.name}</h4>
+                <p class="staff-role">${teacher.designation || 'Faculty'}</p>
+                <p class="staff-contact"><i class="fas fa-envelope"></i> ${teacher.email || 'N/A'}</p>
+                <p class="staff-contact"><i class="fas fa-phone"></i> ${teacher.contact || 'N/A'}</p>
+                <p class="staff-subjects">${teacher.subjects || ''}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render Other Departments Staff
+function renderOtherDeptStaff(teachers, departments) {
+    const container = document.getElementById('otherDeptsStaff');
+    if (!container) return;
+
+    if (teachers.length === 0) {
+        container.innerHTML = '<p class="text-center">No other department staff found</p>';
+        return;
+    }
+
+    // Group teachers by department
+    const grouped = {};
+    teachers.forEach(teacher => {
+        const dept = teacher.department || 'Other';
+        if (!grouped[dept]) grouped[dept] = [];
+        grouped[dept].push(teacher);
+    });
+
+    let html = '';
+    for (const [deptCode, deptTeachers] of Object.entries(grouped)) {
+        const deptInfo = departments.find(d => d.code === deptCode);
+        const deptName = deptInfo ? deptInfo.name : deptCode;
+
+        // Sort - HOD first
+        const sorted = [...deptTeachers].sort((a, b) => {
+            if (a.designation?.toLowerCase().includes('hod')) return -1;
+            if (b.designation?.toLowerCase().includes('hod')) return 1;
+            return 0;
+        });
+
+        html += `
+            <div class="dept-section">
+                <h4 class="dept-header"><i class="fas fa-building"></i> ${deptName}</h4>
+                <div class="staff-grid">
+                    ${sorted.map(teacher => `
+                        <div class="staff-card ${teacher.designation?.toLowerCase().includes('hod') ? 'hod' : ''}">
+                            <div class="staff-avatar">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <div class="staff-info">
+                                <h4>${teacher.name}</h4>
+                                <p class="staff-role">${teacher.designation || 'Faculty'}</p>
+                                <p class="staff-contact"><i class="fas fa-envelope"></i> ${teacher.email || 'N/A'}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
+// Render Administrative Staff
+function renderAdminStaff(staff) {
+    const container = document.getElementById('adminStaffList');
+    if (!container) return;
+
+    if (staff.length === 0) {
+        container.innerHTML = '<p class="text-center">No administrative staff found</p>';
+        return;
+    }
+
+    const roleLabels = {
+        'registrar': 'Registrar',
+        'librarian': 'Librarian',
+        'accountant': 'Accountant',
+        'hostel_warden': 'Hostel Warden',
+        'admission_staff': 'Admission Office'
+    };
+
+    const roleIcons = {
+        'registrar': 'file-alt',
+        'librarian': 'book',
+        'accountant': 'calculator',
+        'hostel_warden': 'home',
+        'admission_staff': 'user-plus'
+    };
+
+    container.innerHTML = staff.map(person => `
+        <div class="staff-card admin">
+            <div class="staff-avatar">
+                <i class="fas fa-${roleIcons[person.role] || 'user-tie'}"></i>
+            </div>
+            <div class="staff-info">
+                <h4>${person.name}</h4>
+                <p class="staff-role">${roleLabels[person.role] || person.role}</p>
+                <p class="staff-contact"><i class="fas fa-envelope"></i> ${person.email || 'N/A'}</p>
+                <p class="staff-contact"><i class="fas fa-phone"></i> ${person.contact || 'N/A'}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Demo Data Functions for Staff
+function getDemoLeadership() {
+    return [
+        { position: 'Chairman', name: 'Dr. Robert Smith', email: 'chairman@college.edu', contact: '9876543210' },
+        { position: 'Principal', name: 'Dr. Sarah Johnson', email: 'principal@college.edu', contact: '9876543211' }
+    ];
+}
+
+function getDemoTeachers() {
+    return [
+        { name: 'Dr. Anil Kumar', email: 'anil.kumar@college.edu', contact: '9876543220', department: 'CS', designation: 'HOD & Professor', subjects: 'Data Structures, Algorithms' },
+        { name: 'Prof. Meera Singh', email: 'meera.singh@college.edu', contact: '9876543221', department: 'CS', designation: 'Associate Professor', subjects: 'Database Systems' },
+        { name: 'Mr. Rahul Verma', email: 'rahul.v@college.edu', contact: '9876543222', department: 'CS', designation: 'Assistant Professor', subjects: 'Web Development' },
+        { name: 'Dr. Priya Mehta', email: 'priya.mehta@college.edu', contact: '9876543223', department: 'AIML', designation: 'HOD & Professor', subjects: 'Machine Learning, AI' },
+        { name: 'Prof. Amit Sharma', email: 'amit.sharma@college.edu', contact: '9876543224', department: 'AIML', designation: 'Associate Professor', subjects: 'Deep Learning' },
+        { name: 'Dr. Rajesh Sharma', email: 'rajesh.sharma@college.edu', contact: '9876543225', department: 'ECE', designation: 'HOD & Professor', subjects: 'Signal Processing' },
+        { name: 'Prof. Neha Gupta', email: 'neha.gupta@college.edu', contact: '9876543226', department: 'ECE', designation: 'Associate Professor', subjects: 'VLSI Design' },
+        { name: 'Dr. Sunita Verma', email: 'sunita.verma@college.edu', contact: '9876543227', department: 'EE', designation: 'HOD & Professor', subjects: 'Power Systems' }
+    ];
+}
+
+function getDemoDepartments() {
+    return [
+        { code: 'CS', name: 'Computer Science', hod: 'Dr. Anil Kumar' },
+        { code: 'AIML', name: 'AI & Machine Learning', hod: 'Dr. Priya Mehta' },
+        { code: 'ECE', name: 'Electronics & Communication', hod: 'Dr. Rajesh Sharma' },
+        { code: 'EE', name: 'Electrical Engineering', hod: 'Dr. Sunita Verma' }
+    ];
+}
+
+function getDemoAdminStaff() {
+    return [
+        { name: 'Mr. Suresh Kumar', role: 'registrar', email: 'registrar@college.edu', contact: '9876543230' },
+        { name: 'Mrs. Anjali Sharma', role: 'librarian', email: 'library@college.edu', contact: '9876543231' },
+        { name: 'Mr. Ramesh Gupta', role: 'accountant', email: 'accounts@college.edu', contact: '9876543232' },
+        { name: 'Mr. Vijay Singh', role: 'hostel_warden', email: 'warden@college.edu', contact: '9876543233' },
+        { name: 'Mrs. Priya Iyer', role: 'admission_staff', email: 'admissions@college.edu', contact: '9876543234' }
+    ];
 }

@@ -487,3 +487,155 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Staff Directory Styles */
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.staff-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    transition: all 0.3s ease;
+    border: 1px solid #eee;
+}
+
+.staff-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.staff-card.leadership {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%);
+    border-color: #ffc107;
+}
+
+.staff-card.hod {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-color: #4caf50;
+}
+
+.staff-card.admin {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-color: #2196f3;
+}
+
+.staff-avatar {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 184, 148, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.staff-card.leadership .staff-avatar {
+    background: rgba(255, 152, 0, 0.2);
+}
+
+.staff-card.hod .staff-avatar {
+    background: rgba(76, 175, 80, 0.2);
+}
+
+.staff-card.admin .staff-avatar {
+    background: rgba(33, 150, 243, 0.2);
+}
+
+.staff-avatar i {
+    font-size: 24px;
+    color: #00b894;
+}
+
+.staff-card.leadership .staff-avatar i {
+    color: #ff9800;
+}
+
+.staff-card.hod .staff-avatar i {
+    color: #4caf50;
+}
+
+.staff-card.admin .staff-avatar i {
+    color: #2196f3;
+}
+
+.staff-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.staff-role {
+    font-size: 13px;
+    color: #00b894;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.staff-card.leadership .staff-role {
+    color: #e65100;
+}
+
+.staff-card.hod .staff-role {
+    color: #2e7d32;
+}
+
+.staff-card.admin .staff-role {
+    color: #1565c0;
+}
+
+.staff-contact {
+    font-size: 12px;
+    color: #666;
+    margin: 3px 0;
+}
+
+.staff-contact i {
+    width: 16px;
+    margin-right: 5px;
+    color: #999;
+}
+
+.staff-subjects {
+    font-size: 11px;
+    color: #888;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.dept-section {
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #eee;
+}
+
+.dept-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.dept-header {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #00b894;
+}
+
+.dept-header i {
+    margin-right: 10px;
+    color: #00b894;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
